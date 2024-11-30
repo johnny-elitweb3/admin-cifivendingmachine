@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base href="." />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CIFI Admin Dashboard</title>
+
+<!-- Core Web3 and Blockchain -->
+<script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+<!-- UI and Visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+<!-- Time and Notifications -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Required CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --primary: #2C3E50;
+  --secondary: #3498DB;
+  --success: #2ECC71;
+  --danger: #E74C3C;
+  --warning: #F1C40F;
+  --light: #ECF0F1;
+  --dark: #2C3E50;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--light);
+  color: var(--dark);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+}
+
+.logo-container {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem auto;
+  position: relative;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(to right, #2ECC71, #1abc9c);
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  border-radius: 4px;
+  margin: 0.25rem 0;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+  color: var(--secondary);
+  margin-bottom: 0.5rem;
+}
+
+.network-selector {
+  background: rgba(255,255,255,0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.network-selector select {
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+.network-selector select option {
+  background: var(--primary);
+  color: white;
+}
+
+.product-table {
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--light);
+}
+
+.product-table th {
+  background: var(--primary);
+  color: white;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(to right, #2ECC71, #1abc9c);
+  color: white;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(to right, #27AE60, #16a085);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+.btn-warning {
+  background: var(--warning);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(241, 196, 15, 0.2);
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: rgba(46, 204, 113, 0.1);
+  color: var(--success);
+}
+
+.status-badge.inactive {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--danger);
+}
+
+.emergency-badge {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--danger);
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 8px;
+  position: relative;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.address-display {
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.chart-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.creators-section,
+.emergency-section,
+.analytics-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.creator-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.creator-controls input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.creators-list {
+  margin-top: 1rem;
+}
+
+.emergency-controls {
+  margin-bottom: 1rem;
+}
+
+.emergency-requests {
+  background: rgba(231, 76, 60, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.emergency-request {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.emergency-request:last-child {
+  border-bottom: none;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  background: white;
+  color: var(--dark);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(120%);
+  transition: transform 0.3s ease-out;
+  max-width: 400px;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.success {
+  border-left: 4px solid var(--success);
+}
+
+.notification.error {
+  border-left: 4px solid var(--danger);
+}
+
+.notification.warning {
+  border-left: 4px solid var(--warning);
+}
+
+.waiting-badge {
+  background: rgba(241, 196, 15, 0.1);
+  color: var(--warning);
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+</style>
+</head>
+<body>
+<div class="dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-container">
+        <img src="https://ipfs.io/ipfs/QmQX4HvtqdYVuJHm17JTyGkK1ttFitg4oAhPzXdy6psm1T" 
+             alt="Company Logo" 
+             class="logo-image">
+      </div>
+      <h2>CIFI VM Admin</h2>
+      <div class="network-selector">
+        <select id="network-select">
+          <option value="50">XDC Mainnet</option>
+          <option value="43114">Avalanche C-Chain</option>
+          <option value="137">Polygon Mainnet</option>
+        </select>
+      </div>
+      <div class="address-display" id="connected-address">
+        Not Connected
+      </div>
+      <!-- Connect Wallet Button -->
+      <button class="btn btn-primary" id="connect-wallet-btn">Connect Wallet</button>
+    </div>
+    
+    <nav>
+      <a href="#dashboard" class="nav-link" data-section="dashboard">Dashboard</a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Network Info -->
+    <div class="network-info">
+      <div class="current-network" id="current-network">
+        Network: Not Connected
+      </div>
+      <div class="network-status" id="network-status"></div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Products</h3>
+        <p id="total-products">Loading...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <p id="total-revenue">Loading...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Contract Balance</h3>
+        <p id="contract-balance">Loading...</p>
+      </div>
+      <div class="stat-card">
+        <h3>Contract Status</h3>
+        <p id="contract-status">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Product Section -->
+    <div class="product-section">
+      <div class="section-header">
+        <h2>Products</h2>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="refresh-products">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+          <button class="btn btn-primary" id="add-product-btn">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+        </div>
+      </div>
+
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Supply</th>
+            <th>Total Sold</th>
+            <th>Revenue</th>
+            <th>Status</th>
+            <th>Emergency</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="product-list">
+          <!-- Products will be populated here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Creators Section -->
+    <div class="creators-section" id="creators-section">
+      <h2>Creators Management</h2>
+      <div class="creator-controls">
+        <input type="text" id="creator-address" placeholder="Creator Address">
+        <button class="btn btn-primary" id="whitelist-creator">Whitelist Creator</button>
+      </div>
+      <div class="creators-list-container">
+        <h3>Whitelisted Creators</h3>
+        <div id="creators-list" class="creators-list"></div>
+      </div>
+    </div>
+
+    <!-- Emergency Section -->
+    <div class="emergency-section" id="emergency-section">
+      <h2>Emergency Controls</h2>
+      <div class="emergency-controls">
+        <button class="btn btn-danger" id="toggle-pause">Loading Contract State...</button>
+      </div>
+      <div class="emergency-requests">
+        <h3>Emergency Withdrawal Requests</h3>
+        <div id="emergency-list" class="emergency-list"></div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="analytics-section">
+      <h2>Analytics Dashboard</h2>
+      <div class="analytics-grid">
+        <div class="chart-container">
+          <canvas id="sales-chart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="revenue-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div id="add-product-modal" class="modal">
+  <div class="modal-content">
+    <h2>Add New Product</h2>
+    <form id="add-product-form">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="form-group">
+        <label>IPFS CID</label>
+        <input type="text" name="ipfsCid" required>
+      </div>
+      <div class="form-group">
+        <label>Product Token Address</label>
+        <input type="text" name="productToken" required>
+      </div>
+      <div class="form-group">
+        <label>Payment Token Address</label>
+        <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
+      </div>
+      <div class="form-group">
+        <label>Price (in wei)</label>
+        <input type="number" name="price" required>
+      </div>
+      <div class="form-group">
+        <label>Initial Supply</label>
+        <input type="number" name="supply" required>
+      </div>
+      <div class="form-group">
+        <label>Beneficiary Address</label>
+        <input type="text" name="beneficiary" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Create Product</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('add-product-modal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- Update Product Modal -->
+<div id="update-product-modal" class="modal">
+  <div class="modal-content">
+    <h2>Update Product</h2>
+    <form id="update-product-form">
+      <input type="hidden" name="productId">
+      <div class="form-group">
+        <label>New Price (in wei)</label>
+        <input type="number" name="newPrice">
+      </div>
+      <div class="form-group">
+        <label>Additional Supply</label>
+        <input type="number" name="additionalSupply">
+      </div>
+      <div class="form-group">
+        <label>New IPFS CID</label>
+        <input type="text" name="newIpfsCid">
+      </div>
+      <button type="submit" class="btn btn-primary">Update Product</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('update-product-modal')">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- Emergency Request Modal -->
+<div id="emergency-request-modal" class="modal">
+  <div class="modal-content">
+    <h2>Emergency Withdrawal Request</h2>
+    <p>Are you sure you want to request an emergency withdrawal for this product?</p>
+    <p>This action will:</p>
+    <ul>
+      <li>Lock the product immediately</li>
+      <li>Start a 24-hour countdown before withdrawal is possible</li>
+      <li>Prevent any new purchases</li>
+    </ul>
+    <input type="hidden" id="emergency-product-id">
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="confirmEmergencyRequest()">Confirm Request</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('emergency-request-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Contract ABI Definition
+const CONTRACT_ABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "OwnableInvalidOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "SafeERC20FailedOperation",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "status",
+				"type": "bool"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "CreatorWhitelisted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "EmergencyWithdrawalExecuted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "EmergencyWithdrawalRequested",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			}
+		],
+		"name": "ProductAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "locked",
+				"type": "bool"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductEmergencyLocked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paymentAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductPurchased",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductStatusChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newSupply",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "newIpfsCID",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "updater",
+				"type": "address"
+			}
+		],
+		"name": "ProductUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Unpaused",
+		"type": "event"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [],
+		"name": "EMERGENCY_WITHDRAWAL_DELAY",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "initialSupply",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			}
+		],
+		"name": "addProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "emergencyWithdrawalRequested",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "emergencyWithdrawalTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "executeEmergencyWithdrawal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getProductCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "getProductDetails",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "availableSupply",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalSold",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalRevenue",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "emergencyLocked",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "getProductRevenue",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalSold",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalRevenue",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			}
+		],
+		"name": "isWhitelistedCreator",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "products",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "availableSupply",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalSold",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalRevenue",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "emergencyLocked",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "purchaseProduct",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "requestEmergencyWithdrawal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "status",
+				"type": "bool"
+			}
+		],
+		"name": "setCreatorWhitelist",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			}
+		],
+		"name": "setProductStatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "additionalSupply",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "newIpfsCID",
+				"type": "string"
+			}
+		],
+		"name": "updateProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "whitelistedCreators",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawTokens",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+];
+
+let web3;
+let contract;
+let currentAccount;
+let currentChainId;
+let products = [];
+
+const NETWORKS = {
+  50: {
+    name: 'XDC Mainnet',
+    rpcUrl: 'https://rpc.xinfin.network',
+    contractAddress: '0x1aa50dAe8DE411c71db6A77e2C0A9ceE35C8BBd1',
+    symbol: 'XDC',
+    explorer: 'https://explorer.xinfin.network',
+    chainParams: {
+      chainId: '0x32',
+      chainName: 'XDC Mainnet',
+      nativeCurrency: { name: 'XDC', symbol: 'XDC', decimals: 18 },
+      rpcUrls: ['https://rpc.xinfin.network'],
+      blockExplorerUrls: ['https://explorer.xinfin.network']
+    }
+  },
+  43114: {
+    name: 'Avalanche C-Chain',
+    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+    contractAddress: '0xe90bCeef5AC65a36199Cfa29552FBCF36BE531A0',
+    symbol: 'AVAX',
+    explorer: 'https://snowtrace.io',
+    chainParams: {
+      chainId: '0xA86A',
+      chainName: 'Avalanche C-Chain',
+      nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+      rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
+      blockExplorerUrls: ['https://snowtrace.io']
+    }
+  },
+  137: {
+    name: 'Polygon Mainnet',
+    rpcUrl: 'https://polygon-rpc.com',
+    contractAddress: '0xd3A42e2aDEc479dAd1C08F76a635da9e6bc888f5',
+    symbol: 'POL',
+    explorer: 'https://polygonscan.com',
+    chainParams: {
+      chainId: '0x89',
+      chainName: 'Polygon Mainnet',
+      nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+      rpcUrls: ['https://polygon-rpc.com'],
+      blockExplorerUrls: ['https://polygonscan.com']
+    }
+  }
+};
+
+// Function to initialize Web3 and connect to the wallet
+async function connectWallet() {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      currentAccount = accounts[0];
+
+      web3 = new Web3(window.ethereum);
+
+      // Get current network
+      const chainId = await web3.eth.getChainId();
+      await handleNetworkChange(chainId);
+
+      // Set up event listeners
+      window.ethereum.on('accountsChanged', handleAccountChange);
+      window.ethereum.on('chainChanged', handleNetworkChange);
+
+      // Update UI with connected account
+      document.getElementById('connected-address').textContent = 
+        `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+
+      // Setup contract events
+      setupContractEvents();
+
+      showNotification('success', 'Connected', 'Successfully connected to wallet');
+    } catch (error) {
+      console.error('Error connecting to wallet:', error);
+      showNotification('error', 'Connection Failed', formatError(error));
+    }
+  } else {
+    showNotification('error', 'Web3 Not Found', 'Please install MetaMask');
+  }
+}
+
+// Event listener for Connect Wallet button
+document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+
+// Handle account changes
+async function handleAccountChange(accounts) {
+  if (accounts.length === 0) {
+    // User has disconnected their wallet
+    currentAccount = null;
+    document.getElementById('connected-address').textContent = 'Not Connected';
+    showNotification('warning', 'Disconnected', 'Please connect your wallet');
+  } else {
+    currentAccount = accounts[0];
+    document.getElementById('connected-address').textContent = 
+      `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+    await loadDashboardData();
+  }
+}
+
+// Handle network changes
+async function handleNetworkChange(chainId) {
+  currentChainId = parseInt(chainId, 16); // Convert hex chainId to decimal
+  const networkConfig = NETWORKS[currentChainId];
+
+  if (!networkConfig) {
+    showNotification('error', 'Network Error', 'Unsupported network. Please switch to a supported network.');
+    return;
+  }
+
+  document.getElementById('current-network').textContent = `Network: ${networkConfig.name}`;
+  contract = new web3.eth.Contract(CONTRACT_ABI, networkConfig.contractAddress);
+
+  await loadDashboardData();
+}
+
+// Function to switch network
+async function switchNetwork(targetChainId) {
+  try {
+    const networkConfig = NETWORKS[targetChainId];
+    if (!networkConfig) throw new Error('Unsupported network');
+
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: networkConfig.chainParams.chainId }]
+    });
+  } catch (error) {
+    // If the chain has not been added to MetaMask, add it
+    if (error.code === 4902) {
+      try {
+        const networkConfig = NETWORKS[targetChainId];
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [networkConfig.chainParams]
+        });
+      } catch (addError) {
+        console.error('Error adding network:', addError);
+        showNotification('error', 'Network Error', 'Failed to add network to MetaMask');
+      }
+    } else {
+      console.error('Error switching network:', error);
+      showNotification('error', 'Network Error', 'Failed to switch network');
+    }
+  }
+}
+
+// Event listener for network selector
+document.getElementById('network-select').addEventListener('change', async (e) => {
+  const targetChainId = parseInt(e.target.value);
+  await switchNetwork(targetChainId);
+});
+
+// Contract events setup
+function setupContractEvents() {
+  if (!contract) return;
+
+  const events = [
+    'ProductAdded',
+    'ProductUpdated',
+    'ProductStatusChanged',
+    'EmergencyWithdrawalRequested',
+    'EmergencyWithdrawalExecuted',
+    'CreatorWhitelisted'
+  ];
+
+  events.forEach(eventName => {
+    contract.events[eventName]({})
+      .on('data', async (event) => {
+        console.log(`${eventName} event:`, event);
+        showNotification('success', eventName, 'Event detected, refreshing data...');
+        await loadDashboardData();
+      })
+      .on('error', error => {
+        console.error(`Error in ${eventName} event:`, error);
+      });
+  });
+}
+
+// Dashboard data loading
+async function loadDashboardData() {
+  try {
+    const [
+      productCount,
+      isPaused,
+      balance
+    ] = await Promise.all([
+      contract.methods.getProductCount().call(),
+      contract.methods.paused().call(),
+      web3.eth.getBalance(contract._address)
+    ]);
+
+    document.getElementById('total-products').textContent = productCount;
+    document.getElementById('contract-balance').textContent = 
+      `${web3.utils.fromWei(balance)} ${NETWORKS[currentChainId].symbol}`;
+    document.getElementById('contract-status').textContent = isPaused ? 'Paused' : 'Active';
+    document.getElementById('toggle-pause').textContent = isPaused ? 'Unpause Contract' : 'Pause Contract';
+
+    await loadProducts(productCount);
+    await loadEmergencyRequests();
+    updateAnalytics();
+  } catch (error) {
+    showNotification('error', 'Loading Error', formatError(error));
+  }
+}
+
+// Products loading
+async function loadProducts(productCount) {
+  const BATCH_SIZE = 5;
+  const productList = document.getElementById('product-list');
+  productList.innerHTML = '';
+  products = [];
+
+  for (let i = 0; i < productCount; i += BATCH_SIZE) {
+    const batch = [];
+    for (let j = i; j < Math.min(i + BATCH_SIZE, productCount); j++) {
+      batch.push(loadProductDetails(j));
+    }
+    
+    const batchResults = await Promise.all(batch);
+    batchResults.forEach((product, index) => {
+      products.push(product);
+      renderProductRow(product, i + index);
+    });
+  }
+}
+
+async function loadProductDetails(productId) {
+  const [details, revenue] = await Promise.all([
+    contract.methods.getProductDetails(productId).call(),
+    contract.methods.getProductRevenue(productId).call()
+  ]);
+
+  return {
+    id: productId,
+    ...details,
+    totalSold: revenue[0],
+    totalRevenue: revenue[1]
+  };
+}
+
+function renderProductRow(product, index) {
+  const productList = document.getElementById('product-list');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${index}</td>
+    <td>${product.name}</td>
+    <td>${web3.utils.fromWei(product.price)} ${NETWORKS[currentChainId].symbol}</td>
+    <td>${product.availableSupply}</td>
+    <td>${product.totalSold}</td>
+    <td>${web3.utils.fromWei(product.totalRevenue)} ${NETWORKS[currentChainId].symbol}</td>
+    <td>
+      <span class="status-badge ${product.isActive ? 'active' : 'inactive'}">
+        ${product.isActive ? 'Active' : 'Inactive'}
+      </span>
+    </td>
+    <td>
+      ${product.emergencyLocked ? 
+        '<span class="emergency-badge">Locked</span>' : 
+        `<button class="btn btn-warning btn-sm" onclick="showEmergencyModal(${index})">Request</button>`
+      }
+    </td>
+    <td>
+      <div class="action-buttons">
+        <button class="btn btn-primary btn-sm" onclick="showUpdateModal(${index})">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn ${product.isActive ? 'btn-danger' : 'btn-success'} btn-sm" 
+                onclick="toggleProduct(${index})">
+          ${product.isActive ? '<i class="fas fa-times"></i>' : '<i class="fas fa-check"></i>'}
+        </button>
+      </div>
+    </td>
+  `;
+  productList.appendChild(row);
+}
+
+// Emergency requests
+async function loadEmergencyRequests() {
+  const emergencyList = document.getElementById('emergency-list');
+  emergencyList.innerHTML = '';
+  
+  const requests = [];
+  const productCount = await contract.methods.getProductCount().call();
+  
+  for (let i = 0; i < productCount; i++) {
+    const isRequested = await contract.methods.emergencyWithdrawalRequested(i).call();
+    if (isRequested) {
+      const [product, withdrawalTime] = await Promise.all([
+        contract.methods.getProductDetails(i).call(),
+        contract.methods.emergencyWithdrawalTime(i).call()
+      ]);
+      
+      const timeLeft = (parseInt(withdrawalTime) + 86400) - Math.floor(Date.now() / 1000);
+      
+      requests.push(`
+        <div class="emergency-request">
+          <div class="request-info">
+            <span>Product #${i}: ${product.name}</span>
+            <span class="time-left">${timeLeft > 0 ? `${Math.floor(timeLeft / 3600)}h ${Math.floor((timeLeft % 3600) / 60)}m left` : 'Ready for withdrawal'}</span>
+          </div>
+          ${timeLeft <= 0 ? 
+            `<button class="btn btn-danger" onclick="executeEmergencyWithdrawal(${i})">
+              Execute Withdrawal
+             </button>` : 
+            '<span class="waiting-badge">Waiting</span>'
+          }
+        </div>
+      `);
+    }
+  }
+  
+  emergencyList.innerHTML = requests.join('') || '<p>No emergency requests</p>';
+}
+
+// Product Management Functions
+async function addProduct(formData) {
+  try {
+    await contract.methods.addProduct(
+      formData.get('name'),
+      formData.get('ipfsCid'),
+      formData.get('productToken'),
+      formData.get('paymentToken'),
+      formData.get('price'),
+      formData.get('supply'),
+      formData.get('beneficiary')
+    ).send({ from: currentAccount });
+    
+    closeModal('add-product-modal');
+    showNotification('success', 'Success', 'Product added successfully');
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function updateProduct(formData) {
+  try {
+    const productId = formData.get('productId');
+    await contract.methods.updateProduct(
+      productId,
+      formData.get('newPrice') || '0',
+      formData.get('additionalSupply') || '0',
+      formData.get('newIpfsCid') || ''
+    ).send({ from: currentAccount });
+    
+    closeModal('update-product-modal');
+    showNotification('success', 'Success', 'Product updated successfully');
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function toggleProduct(productId) {
+  try {
+    const product = await contract.methods.getProductDetails(productId).call();
+    await contract.methods.setProductStatus(productId, !product.isActive)
+      .send({ from: currentAccount });
+    
+    showNotification('success', 'Success', `Product ${product.isActive ? 'deactivated' : 'activated'}`);
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function requestEmergencyWithdrawal(productId) {
+  try {
+    await contract.methods.requestEmergencyWithdrawal(productId)
+      .send({ from: currentAccount });
+    
+    closeModal('emergency-request-modal');
+    showNotification('success', 'Success', 'Emergency withdrawal requested');
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function executeEmergencyWithdrawal(productId) {
+  try {
+    await contract.methods.executeEmergencyWithdrawal(productId)
+      .send({ from: currentAccount });
+    
+    showNotification('success', 'Success', 'Emergency withdrawal executed');
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function togglePause() {
+  try {
+    const isPaused = await contract.methods.paused().call();
+    await contract.methods[isPaused ? 'unpause' : 'pause']()
+      .send({ from: currentAccount });
+    
+    showNotification('success', 'Success', `Contract ${isPaused ? 'unpaused' : 'paused'}`);
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+// Creator management
+async function whitelistCreator() {
+  const address = document.getElementById('creator-address').value;
+  try {
+    await contract.methods.setCreatorWhitelist(address, true)
+      .send({ from: currentAccount });
+    
+    showNotification('success', 'Success', 'Creator whitelisted');
+    document.getElementById('creator-address').value = '';
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+// Analytics Functions
+function updateAnalytics() {
+  if (!products.length) return;
+
+  const revenueCtx = document.getElementById('revenue-chart').getContext('2d');
+  const salesCtx = document.getElementById('sales-chart').getContext('2d');
+  
+  // Destroy existing charts if they exist
+  if (window.revenueChart) window.revenueChart.destroy();
+  if (window.salesChart) window.salesChart.destroy();
+  
+  const chartData = products.map(p => ({
+    name: p.name,
+    revenue: parseFloat(web3.utils.fromWei(p.totalRevenue)),
+    sales: parseInt(p.totalSold)
+  }));
+
+  // Revenue Chart
+  window.revenueChart = new Chart(revenueCtx, {
+    type: 'bar',
+    data: {
+      labels: chartData.map(d => d.name),
+      datasets: [{
+        label: 'Revenue',
+        data: chartData.map(d => d.revenue),
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Product Revenue Distribution'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: NETWORKS[currentChainId].symbol
+          }
+        }
+      }
+    }
+  });
+
+  // Sales Chart
+  window.salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+      labels: chartData.map(d => d.name),
+      datasets: [{
+        label: 'Sales',
+        data: chartData.map(d => d.sales),
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Product Sales Overview'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Units Sold'
+          }
+        }
+      }
+    }
+  });
+
+  // Update total revenue
+  const totalRevenue = chartData.reduce((sum, product) => sum + product.revenue, 0);
+  document.getElementById('total-revenue').textContent = 
+    `${totalRevenue.toFixed(2)} ${NETWORKS[currentChainId].symbol}`;
+}
+
+// UI Helper Functions
+function showNotification(type, title, message) {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type} show`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-title">${title}</div>
+      <div class="notification-message">${message}</div>
+    </div>
+    <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  
+  document.body.appendChild(notification);
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
+}
+
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.classList.add('show');
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.classList.remove('show');
+}
+
+function showUpdateModal(productId) {
+  const form = document.getElementById('update-product-form');
+  form.elements['productId'].value = productId;
+  showModal('update-product-modal');
+}
+
+function showEmergencyModal(productId) {
+  document.getElementById('emergency-product-id').value = productId;
+  showModal('emergency-request-modal');
+}
+
+function confirmEmergencyRequest() {
+  const productId = document.getElementById('emergency-product-id').value;
+  requestEmergencyWithdrawal(productId);
+}
+
+// Error Formatting
+function formatError(error) {
+  if (error.message) {
+    if (error.message.includes('User denied')) {
+      return 'Transaction rejected by user';
+    }
+    if (error.message.includes('insufficient funds')) {
+      return 'Insufficient funds for transaction';
+    }
+    return error.message;
+  }
+  return 'An unexpected error occurred';
+}
+
+// Initialize UI elements and event listeners after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if wallet is already connected
+  if (typeof window.ethereum !== 'undefined') {
+    web3 = new Web3(window.ethereum);
+    web3.eth.getAccounts().then(accounts => {
+      if (accounts.length > 0) {
+        currentAccount = accounts[0];
+        document.getElementById('connected-address').textContent = 
+          `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+        web3.eth.getChainId().then(chainId => {
+          handleNetworkChange(chainId);
+        });
+      }
+    });
+
+    // Set up event listeners
+    window.ethereum.on('accountsChanged', handleAccountChange);
+    window.ethereum.on('chainChanged', handleNetworkChange);
+  } else {
+    console.warn('MetaMask is not installed');
+  }
+
+  // Set up other UI event listeners
+  setupUIElements();
+});
+
+function setupUIElements() {
+  // Event Listeners
+  document.getElementById('network-select').addEventListener('change', async (e) => {
+    try {
+      await switchNetwork(parseInt(e.target.value));
+    } catch (error) {
+      showNotification('error', 'Network Switch Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await addProduct(new FormData(e.target));
+    } catch (error) {
+      showNotification('error', 'Add Product Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('update-product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await updateProduct(new FormData(e.target));
+    } catch (error) {
+      showNotification('error', 'Update Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('whitelist-creator').addEventListener('click', async () => {
+    try {
+      await whitelistCreator();
+    } catch (error) {
+      showNotification('error', 'Whitelist Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('toggle-pause').addEventListener('click', async () => {
+    try {
+      await togglePause();
+    } catch (error) {
+      showNotification('error', 'Toggle Pause Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('refresh-products').addEventListener('click', async () => {
+    try {
+      await loadDashboardData();
+    } catch (error) {
+      showNotification('error', 'Refresh Failed', formatError(error));
+    }
+  });
+
+  document.getElementById('add-product-btn').addEventListener('click', () => {
+    showModal('add-product-modal');
+  });
+
+  // Close modals when clicking outside
+  window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+      closeModal(e.target.id);
+    }
+  });
+}
+</script>
+</body>
+</html>
