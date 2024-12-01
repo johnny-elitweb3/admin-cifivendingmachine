@@ -636,7 +636,13 @@ body {
 // Updated Contract ABI
 const CONTRACT_ABI = /* Paste the latest ABI here */ [
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "initialOwner",
+				"type": "address"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -660,6 +666,17 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "SafeERC20FailedOperation",
 		"type": "error"
 	},
 	{
@@ -793,7 +810,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "productAddress",
+				"name": "productContract",
 				"type": "address"
 			},
 			{
@@ -841,43 +858,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"name": "ProductEmergencyLocked",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "productId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "buyer",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "paymentAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "ProductPurchased",
 		"type": "event"
 	},
 	{
@@ -1010,6 +990,24 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 		"inputs": [
 			{
 				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "depositToProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
 			}
@@ -1058,6 +1056,19 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "getAllProductIds",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -1065,7 +1076,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 				"type": "uint256"
 			}
 		],
-		"name": "getProductBasicInfo",
+		"name": "getFullProductDetails",
 		"outputs": [
 			{
 				"components": [
@@ -1081,8 +1092,38 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 					},
 					{
 						"internalType": "address",
-						"name": "productAddress",
+						"name": "productToken",
 						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "paymentToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "availableSupply",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalSold",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalRevenue",
+						"type": "uint256"
 					},
 					{
 						"internalType": "address",
@@ -1096,31 +1137,13 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 					},
 					{
 						"internalType": "bool",
-						"name": "isActive",
-						"type": "bool"
-					},
-					{
-						"internalType": "bool",
 						"name": "emergencyLocked",
 						"type": "bool"
 					}
 				],
-				"internalType": "struct TestVendingMachine.ProductBasicInfo",
-				"name": "",
+				"internalType": "struct Test2VendingMachine.FullProductDetails",
+				"name": "details",
 				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getProductCount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1134,44 +1157,42 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 				"type": "uint256"
 			}
 		],
-		"name": "getProductExtendedInfo",
+		"name": "getProductBasicInfo",
 		"outputs": [
 			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "price",
-						"type": "uint256"
-					},
-					{
-						"internalType": "address",
-						"name": "productToken",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "paymentToken",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "availableSupply",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "totalSold",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "totalRevenue",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct TestVendingMachine.ProductExtendedInfo",
-				"name": "",
-				"type": "tuple"
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "productContractAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "emergencyLocked",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -1251,7 +1272,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			},
 			{
 				"internalType": "address",
-				"name": "productAddress",
+				"name": "productContract",
 				"type": "address"
 			},
 			{
@@ -1276,37 +1297,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "productId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "purchaseProduct",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "productId",
-				"type": "uint256"
-			}
-		],
-		"name": "recalibrateProduct",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1439,7 +1429,7 @@ const NETWORKS = {
   50: {
     name: 'XDC Mainnet',
     rpcUrl: 'https://rpc.xinfin.network',
-    contractAddress: '0x0F53b47424FaFc8501ADF7f40E9920aC8DA925D7',
+    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
     symbol: 'XDC',
     explorer: 'https://explorer.xinfin.network',
     chainParams: {
@@ -1453,7 +1443,7 @@ const NETWORKS = {
   43114: {
     name: 'Avalanche C-Chain',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    contractAddress: '0xe90bCeef5AC65a36199Cfa29552FBCF36BE531A0',
+    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
     symbol: 'AVAX',
     explorer: 'https://snowtrace.io',
     chainParams: {
@@ -1467,7 +1457,7 @@ const NETWORKS = {
   137: {
     name: 'Polygon Mainnet',
     rpcUrl: 'https://polygon-rpc.com',
-    contractAddress: '0xd3A42e2aDEc479dAd1C08F76a635da9e6bc888f5',
+    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
     symbol: 'POL',
     explorer: 'https://polygonscan.com',
     chainParams: {
