@@ -422,6 +422,7 @@ body {
 
 </style>
 </head>
+<!-- Updated Front-End Code -->
 <body>
 <div class="dashboard">
   <!-- Sidebar -->
@@ -604,26 +605,10 @@ body {
       </div>
       <div class="form-group">
         <label>New IPFS CID</label>
-        <input type="text" name="newIpfsCID">
+        <input type="text" name="newIpfsCid">
       </div>
       <button type="submit" class="btn btn-primary">Update Product</button>
       <button type="button" class="btn btn-secondary" onclick="closeModal('update-product-modal')">Cancel</button>
-    </form>
-  </div>
-</div>
-
-<!-- Deposit Tokens Modal -->
-<div id="deposit-tokens-modal" class="modal">
-  <div class="modal-content">
-    <h2>Deposit Tokens to Product</h2>
-    <form id="deposit-tokens-form">
-      <input type="hidden" name="productId">
-      <div class="form-group">
-        <label>Amount to Deposit</label>
-        <input type="number" name="amount" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Deposit Tokens</button>
-      <button type="button" class="btn btn-secondary" onclick="closeModal('deposit-tokens-modal')">Cancel</button>
     </form>
   </div>
 </div>
@@ -651,13 +636,7 @@ body {
 // Updated Contract ABI
 const CONTRACT_ABI = /* Paste the latest ABI here */ [
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "initialOwner",
-				"type": "address"
-			}
-		],
+		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -681,17 +660,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"name": "OwnableUnauthorizedAccount",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			}
-		],
-		"name": "SafeERC20FailedOperation",
 		"type": "error"
 	},
 	{
@@ -825,7 +793,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "productContract",
+				"name": "productAddress",
 				"type": "address"
 			},
 			{
@@ -873,6 +841,43 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"name": "ProductEmergencyLocked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paymentAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductPurchased",
 		"type": "event"
 	},
 	{
@@ -1005,24 +1010,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "productId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "depositToProduct",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
 			}
@@ -1071,19 +1058,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "getAllProductIds",
-		"outputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -1091,7 +1065,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 				"type": "uint256"
 			}
 		],
-		"name": "getFullProductDetails",
+		"name": "getProductBasicInfo",
 		"outputs": [
 			{
 				"components": [
@@ -1107,38 +1081,8 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 					},
 					{
 						"internalType": "address",
-						"name": "productToken",
+						"name": "productAddress",
 						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "paymentToken",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "price",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "availableSupply",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "isActive",
-						"type": "bool"
-					},
-					{
-						"internalType": "uint256",
-						"name": "totalSold",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "totalRevenue",
-						"type": "uint256"
 					},
 					{
 						"internalType": "address",
@@ -1152,13 +1096,31 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 					},
 					{
 						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
 						"name": "emergencyLocked",
 						"type": "bool"
 					}
 				],
-				"internalType": "struct Test2VendingMachine.FullProductDetails",
-				"name": "details",
+				"internalType": "struct TestVendingMachine.ProductBasicInfo",
+				"name": "",
 				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getProductCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1172,42 +1134,44 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 				"type": "uint256"
 			}
 		],
-		"name": "getProductBasicInfo",
+		"name": "getProductExtendedInfo",
 		"outputs": [
 			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "ipfsCID",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "productContractAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "beneficiary",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "isActive",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "emergencyLocked",
-				"type": "bool"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "productToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "paymentToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "availableSupply",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalSold",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalRevenue",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct TestVendingMachine.ProductExtendedInfo",
+				"name": "",
+				"type": "tuple"
 			}
 		],
 		"stateMutability": "view",
@@ -1287,7 +1251,7 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			},
 			{
 				"internalType": "address",
-				"name": "productContract",
+				"name": "productAddress",
 				"type": "address"
 			},
 			{
@@ -1312,6 +1276,37 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "purchaseProduct",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "recalibrateProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1434,777 +1429,6 @@ const CONTRACT_ABI = /* Paste the latest ABI here */ [
 	}
 ];
 
-const ERC20_ABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "tokenName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "tokenSymbol",
-				"type": "string"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "oldBalance",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newBalance",
-				"type": "uint256"
-			}
-		],
-		"name": "BalanceChanged",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "triggeredBy",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "EmergencyShutdown",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "canTransfer",
-				"type": "bool"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "canSnapshot",
-				"type": "bool"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "canModifyPermissions",
-				"type": "bool"
-			}
-		],
-		"name": "PermissionUpdated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			},
-			{
-				"components": [
-					{
-						"internalType": "bool",
-						"name": "canTransfer",
-						"type": "bool"
-					},
-					{
-						"internalType": "bool",
-						"name": "canSnapshot",
-						"type": "bool"
-					},
-					{
-						"internalType": "bool",
-						"name": "canModifyPermissions",
-						"type": "bool"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastUpdated",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "deregistrationTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "lastSnapshotTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "snapshotCount",
-						"type": "uint256"
-					}
-				],
-				"indexed": true,
-				"internalType": "struct wCIFI.ProtocolPermissions",
-				"name": "permissions",
-				"type": "tuple"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "effectiveTime",
-				"type": "uint256"
-			}
-		],
-		"name": "ProtocolStatusChanged",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "oldLimit",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newLimit",
-				"type": "uint256"
-			}
-		],
-		"name": "RateLimitUpdated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "attacker",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "functionName",
-				"type": "string"
-			}
-		],
-		"name": "ReentrancyAttempt",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "requester",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "batchSize",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
-		"name": "SnapshotAttempt",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "bytes32",
-				"name": "snapshotId",
-				"type": "bytes32"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "blockNumber",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "SnapshotCreated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "bytes32",
-				"name": "snapshotId",
-				"type": "bytes32"
-			},
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "SnapshotPruned",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "snapshotId",
-				"type": "bytes32"
-			}
-		],
-		"name": "balanceOfAt",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address[]",
-				"name": "addresses",
-				"type": "address[]"
-			}
-		],
-		"name": "createSnapshot",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "decimals",
-		"outputs": [
-			{
-				"internalType": "uint8",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "emergencyShutdown",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nonce",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "deadline",
-				"type": "uint256"
-			}
-		],
-		"name": "getPermitHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			}
-		],
-		"name": "getProtocolPermissions",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			}
-		],
-		"name": "initiateProtocolDeregistration",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			}
-		],
-		"name": "isProtocolActive",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "name",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "nonces",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "paused",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "deadline",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint8",
-				"name": "v",
-				"type": "uint8"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "r",
-				"type": "bytes32"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "s",
-				"type": "bytes32"
-			}
-		],
-		"name": "permit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "canTransfer",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "canSnapshot",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "canModifyPermissions",
-				"type": "bool"
-			}
-		],
-		"name": "registerProtocol",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "symbol",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalSupply",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "protocol",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "canTransfer",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "canSnapshot",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "canModifyPermissions",
-				"type": "bool"
-			}
-		],
-		"name": "updateProtocolPermissions",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-];
-
 let web3;
 let contract;
 let currentAccount;
@@ -2215,7 +1439,7 @@ const NETWORKS = {
   50: {
     name: 'XDC Mainnet',
     rpcUrl: 'https://rpc.xinfin.network',
-    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
+    contractAddress: '0x0F53b47424FaFc8501ADF7f40E9920aC8DA925D7',
     symbol: 'XDC',
     explorer: 'https://explorer.xinfin.network',
     chainParams: {
@@ -2229,7 +1453,7 @@ const NETWORKS = {
   43114: {
     name: 'Avalanche C-Chain',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
+    contractAddress: '0xe90bCeef5AC65a36199Cfa29552FBCF36BE531A0',
     symbol: 'AVAX',
     explorer: 'https://snowtrace.io',
     chainParams: {
@@ -2243,7 +1467,7 @@ const NETWORKS = {
   137: {
     name: 'Polygon Mainnet',
     rpcUrl: 'https://polygon-rpc.com',
-    contractAddress: '0xf2CC1c24d2b1E173020ab9b846e8bfFD78f6976b',
+    contractAddress: '0xd3A42e2aDEc479dAd1C08F76a635da9e6bc888f5',
     symbol: 'POL',
     explorer: 'https://polygonscan.com',
     chainParams: {
@@ -2287,7 +1511,7 @@ async function connectWallet() {
       showNotification('error', 'Connection Failed', formatError(error));
     }
   } else {
-    showNotification('error', 'Web3 Not Found', 'Please install MetaMask or a compatible wallet');
+    showNotification('error', 'Web3 Not Found', 'Please install MetaMask');
   }
 }
 
@@ -2371,8 +1595,7 @@ function setupContractEvents() {
     'ProductStatusChanged',
     'EmergencyWithdrawalRequested',
     'EmergencyWithdrawalExecuted',
-    'CreatorWhitelisted',
-    'ProductEmergencyLocked'
+    'CreatorWhitelisted'
   ];
 
   events.forEach(eventName => {
@@ -2396,7 +1619,7 @@ async function loadDashboardData() {
       isPaused,
       balance
     ] = await Promise.all([
-      contract.methods.products.length().call(),
+      contract.methods.getProductCount().call(),
       contract.methods.paused().call(),
       web3.eth.getBalance(contract._address)
     ]);
@@ -2437,23 +1660,26 @@ async function loadProducts(productCount) {
 }
 
 async function loadProductDetails(productId) {
-  const product = await contract.methods.getFullProductDetails(productId).call();
+  const [basicInfo, extendedInfo] = await Promise.all([
+    contract.methods.getProductBasicInfo(productId).call(),
+    contract.methods.getProductExtendedInfo(productId).call()
+  ]);
 
   return {
     id: productId,
-    name: product.name,
-    ipfsCID: product.ipfsCID,
-    productAddress: products[productId].productContract,
-    creator: product.creator,
-    beneficiary: product.beneficiary,
-    isActive: product.isActive,
-    emergencyLocked: product.emergencyLocked,
-    price: product.price,
-    productToken: product.productToken,
-    paymentToken: product.paymentToken,
-    availableSupply: product.availableSupply,
-    totalSold: product.totalSold,
-    totalRevenue: product.totalRevenue
+    name: basicInfo.name,
+    ipfsCID: basicInfo.ipfsCID,
+    productAddress: basicInfo.productAddress,
+    creator: basicInfo.creator,
+    beneficiary: basicInfo.beneficiary,
+    isActive: basicInfo.isActive,
+    emergencyLocked: basicInfo.emergencyLocked,
+    price: extendedInfo.price,
+    productToken: extendedInfo.productToken,
+    paymentToken: extendedInfo.paymentToken,
+    availableSupply: extendedInfo.availableSupply,
+    totalSold: extendedInfo.totalSold,
+    totalRevenue: extendedInfo.totalRevenue
   };
 }
 
@@ -2463,7 +1689,7 @@ function renderProductRow(product) {
   row.innerHTML = `
     <td>${product.id}</td>
     <td>${product.name}</td>
-    <td><a href="${NETWORKS[currentChainId].explorer}/address/${product.productAddress}" target="_blank">${product.productAddress}</a></td>
+    <td><a href="${NETWORKS[currentChainId].explorer}/address/${product.productAddress}" target="_blank">${product.productAddress.substr(0,6)}...${product.productAddress.substr(-4)}</a></td>
     <td>${web3.utils.fromWei(product.price)} ${NETWORKS[currentChainId].symbol}</td>
     <td>${product.availableSupply}</td>
     <td>${product.totalSold}</td>
@@ -2491,9 +1717,6 @@ function renderProductRow(product) {
         <button class="btn btn-secondary btn-sm" onclick="recalibrateProduct(${product.id})">
           <i class="fas fa-sync-alt"></i>
         </button>
-        <button class="btn btn-info btn-sm" onclick="showDepositModal(${product.id})">
-          <i class="fas fa-arrow-up"></i>
-        </button>
       </div>
     </td>
   `;
@@ -2506,13 +1729,13 @@ async function loadEmergencyRequests() {
   emergencyList.innerHTML = '';
   
   const requests = [];
-  const productCount = await contract.methods.products.length().call();
+  const productCount = await contract.methods.getProductCount().call();
   
   for (let i = 0; i < productCount; i++) {
     const isRequested = await contract.methods.emergencyWithdrawalRequested(i).call();
     if (isRequested) {
-      const [product, withdrawalTime] = await Promise.all([
-        contract.methods.getFullProductDetails(i).call(),
+      const [basicInfo, withdrawalTime] = await Promise.all([
+        contract.methods.getProductBasicInfo(i).call(),
         contract.methods.emergencyWithdrawalTime(i).call()
       ]);
       
@@ -2521,7 +1744,7 @@ async function loadEmergencyRequests() {
       requests.push(`
         <div class="emergency-request">
           <div class="request-info">
-            <span>Product #${i}: ${product.name}</span>
+            <span>Product #${i}: ${basicInfo.name}</span>
             <span class="time-left">${timeLeft > 0 ? `${Math.floor(timeLeft / 3600)}h ${Math.floor((timeLeft % 3600) / 60)}m left` : 'Ready for withdrawal'}</span>
           </div>
           ${timeLeft <= 0 ? 
@@ -2564,7 +1787,7 @@ async function updateProduct(formData) {
     await contract.methods.updateProduct(
       productId,
       formData.get('newPrice') || '0',
-      formData.get('newIpfsCID') || ''
+      formData.get('newIpfsCid') || ''
     ).send({ from: currentAccount });
     
     closeModal('update-product-modal');
@@ -2589,11 +1812,11 @@ async function recalibrateProduct(productId) {
 
 async function toggleProduct(productId) {
   try {
-    const product = await contract.methods.getFullProductDetails(productId).call();
-    await contract.methods.setProductStatus(productId, !product.isActive)
+    const basicInfo = await contract.methods.getProductBasicInfo(productId).call();
+    await contract.methods.setProductStatus(productId, !basicInfo.isActive)
       .send({ from: currentAccount });
     
-    showNotification('success', 'Success', `Product ${product.isActive ? 'deactivated' : 'activated'}`);
+    showNotification('success', 'Success', `Product ${basicInfo.isActive ? 'deactivated' : 'activated'}`);
     await loadDashboardData();
   } catch (error) {
     showNotification('error', 'Error', formatError(error));
@@ -2632,34 +1855,6 @@ async function togglePause() {
       .send({ from: currentAccount });
     
     showNotification('success', 'Success', `Contract ${isPaused ? 'unpaused' : 'paused'}`);
-    await loadDashboardData();
-  } catch (error) {
-    showNotification('error', 'Error', formatError(error));
-  }
-}
-
-// Deposit Tokens Function
-async function depositTokens(formData) {
-  try {
-    const productId = formData.get('productId');
-    const amount = formData.get('amount');
-
-    const productDetails = await contract.methods.getFullProductDetails(productId).call();
-    const productTokenAddress = productDetails.productToken;
-    const productContractAddress = products[productId].productAddress;
-
-    const productToken = new web3.eth.Contract(ERC20_ABI, productTokenAddress);
-
-    // Approve the Vending Machine contract to spend tokens
-    await productToken.methods.approve(contract._address, amount)
-      .send({ from: currentAccount });
-
-    // Deposit tokens to the product
-    await contract.methods.depositToProduct(productId, amount)
-      .send({ from: currentAccount });
-
-    closeModal('deposit-tokens-modal');
-    showNotification('success', 'Success', 'Tokens deposited successfully');
     await loadDashboardData();
   } catch (error) {
     showNotification('error', 'Error', formatError(error));
@@ -2816,12 +2011,6 @@ function confirmEmergencyRequest() {
   requestEmergencyWithdrawal(productId);
 }
 
-function showDepositModal(productId) {
-  const form = document.getElementById('deposit-tokens-form');
-  form.elements['productId'].value = productId;
-  showModal('deposit-tokens-modal');
-}
-
 // Error Formatting
 function formatError(error) {
   if (error.message) {
@@ -2888,15 +2077,6 @@ function setupUIElements() {
       await updateProduct(new FormData(e.target));
     } catch (error) {
       showNotification('error', 'Update Failed', formatError(error));
-    }
-  });
-
-  document.getElementById('deposit-tokens-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    try {
-      await depositTokens(new FormData(e.target));
-    } catch (error) {
-      showNotification('error', 'Deposit Failed', formatError(error));
     }
   });
 
