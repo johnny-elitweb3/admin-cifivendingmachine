@@ -422,6 +422,7 @@ body {
 
 </style>
 </head>
+<!-- Updated Front-End Code -->
 <body>
 <div class="dashboard">
   <!-- Sidebar -->
@@ -582,10 +583,6 @@ body {
         <input type="number" name="price" required>
       </div>
       <div class="form-group">
-        <label>Initial Supply</label>
-        <input type="number" name="supply" required>
-      </div>
-      <div class="form-group">
         <label>Beneficiary Address</label>
         <input type="text" name="beneficiary" required>
       </div>
@@ -604,10 +601,6 @@ body {
       <div class="form-group">
         <label>New Price (in wei)</label>
         <input type="number" name="newPrice">
-      </div>
-      <div class="form-group">
-        <label>Additional Supply</label>
-        <input type="number" name="additionalSupply">
       </div>
       <div class="form-group">
         <label>New IPFS CID</label>
@@ -639,8 +632,8 @@ body {
 </div>
 
 <script>
-// Contract ABI Definition
-const CONTRACT_ABI = [
+// Updated Contract ABI
+const CONTRACT_ABI = /* Paste the latest ABI here */ [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
@@ -1486,7 +1479,7 @@ const NETWORKS = {
   }
 };
 
-// Function to initialize Web3 and connect to the wallet
+// Initialize Web3 and connect to the wallet
 async function connectWallet() {
   if (typeof window.ethereum !== 'undefined') {
     try {
@@ -1660,30 +1653,40 @@ async function loadProducts(productCount) {
     const batchResults = await Promise.all(batch);
     batchResults.forEach((product, index) => {
       products.push(product);
-      renderProductRow(product, i + index);
+      renderProductRow(product);
     });
   }
 }
 
 async function loadProductDetails(productId) {
-  const [details, revenue] = await Promise.all([
-    contract.methods.getProductDetails(productId).call(),
-    contract.methods.getProductRevenue(productId).call()
+  const [basicInfo, extendedInfo] = await Promise.all([
+    contract.methods.getProductBasicInfo(productId).call(),
+    contract.methods.getProductExtendedInfo(productId).call()
   ]);
 
   return {
     id: productId,
-    ...details,
-    totalSold: revenue[0],
-    totalRevenue: revenue[1]
+    name: basicInfo.name,
+    ipfsCID: basicInfo.ipfsCID,
+    productAddress: basicInfo.productAddress,
+    creator: basicInfo.creator,
+    beneficiary: basicInfo.beneficiary,
+    isActive: basicInfo.isActive,
+    emergencyLocked: basicInfo.emergencyLocked,
+    price: extendedInfo.price,
+    productToken: extendedInfo.productToken,
+    paymentToken: extendedInfo.paymentToken,
+    availableSupply: extendedInfo.availableSupply,
+    totalSold: extendedInfo.totalSold,
+    totalRevenue: extendedInfo.totalRevenue
   };
 }
 
-function renderProductRow(product, index) {
+function renderProductRow(product) {
   const productList = document.getElementById('product-list');
   const row = document.createElement('tr');
   row.innerHTML = `
-    <td>${index}</td>
+    <td>${product.id}</td>
     <td>${product.name}</td>
     <td>${web3.utils.fromWei(product.price)} ${NETWORKS[currentChainId].symbol}</td>
     <td>${product.availableSupply}</td>
@@ -1697,16 +1700,16 @@ function renderProductRow(product, index) {
     <td>
       ${product.emergencyLocked ? 
         '<span class="emergency-badge">Locked</span>' : 
-        `<button class="btn btn-warning btn-sm" onclick="showEmergencyModal(${index})">Request</button>`
+        `<button class="btn btn-warning btn-sm" onclick="showEmergencyModal(${product.id})">Request</button>`
       }
     </td>
     <td>
       <div class="action-buttons">
-        <button class="btn btn-primary btn-sm" onclick="showUpdateModal(${index})">
+        <button class="btn btn-primary btn-sm" onclick="showUpdateModal(${product.id})">
           <i class="fas fa-edit"></i>
         </button>
         <button class="btn ${product.isActive ? 'btn-danger' : 'btn-success'} btn-sm" 
-                onclick="toggleProduct(${index})">
+                onclick="toggleProduct(${product.id})">
           ${product.isActive ? '<i class="fas fa-times"></i>' : '<i class="fas fa-check"></i>'}
         </button>
       </div>
@@ -1726,8 +1729,8 @@ async function loadEmergencyRequests() {
   for (let i = 0; i < productCount; i++) {
     const isRequested = await contract.methods.emergencyWithdrawalRequested(i).call();
     if (isRequested) {
-      const [product, withdrawalTime] = await Promise.all([
-        contract.methods.getProductDetails(i).call(),
+      const [basicInfo, withdrawalTime] = await Promise.all([
+        contract.methods.getProductBasicInfo(i).call(),
         contract.methods.emergencyWithdrawalTime(i).call()
       ]);
       
@@ -1736,7 +1739,7 @@ async function loadEmergencyRequests() {
       requests.push(`
         <div class="emergency-request">
           <div class="request-info">
-            <span>Product #${i}: ${product.name}</span>
+            <span>Product #${i}: ${basicInfo.name}</span>
             <span class="time-left">${timeLeft > 0 ? `${Math.floor(timeLeft / 3600)}h ${Math.floor((timeLeft % 3600) / 60)}m left` : 'Ready for withdrawal'}</span>
           </div>
           ${timeLeft <= 0 ? 
@@ -1762,7 +1765,6 @@ async function addProduct(formData) {
       formData.get('productToken'),
       formData.get('paymentToken'),
       formData.get('price'),
-      formData.get('supply'),
       formData.get('beneficiary')
     ).send({ from: currentAccount });
     
@@ -1780,7 +1782,6 @@ async function updateProduct(formData) {
     await contract.methods.updateProduct(
       productId,
       formData.get('newPrice') || '0',
-      formData.get('additionalSupply') || '0',
       formData.get('newIpfsCid') || ''
     ).send({ from: currentAccount });
     
@@ -1794,11 +1795,11 @@ async function updateProduct(formData) {
 
 async function toggleProduct(productId) {
   try {
-    const product = await contract.methods.getProductDetails(productId).call();
-    await contract.methods.setProductStatus(productId, !product.isActive)
+    const basicInfo = await contract.methods.getProductBasicInfo(productId).call();
+    await contract.methods.setProductStatus(productId, !basicInfo.isActive)
       .send({ from: currentAccount });
     
-    showNotification('success', 'Success', `Product ${product.isActive ? 'deactivated' : 'activated'}`);
+    showNotification('success', 'Success', `Product ${basicInfo.isActive ? 'deactivated' : 'activated'}`);
     await loadDashboardData();
   } catch (error) {
     showNotification('error', 'Error', formatError(error));
