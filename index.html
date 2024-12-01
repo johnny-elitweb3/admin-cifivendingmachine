@@ -502,6 +502,7 @@ body {
           <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Contract Address</th>
             <th>Price</th>
             <th>Supply</th>
             <th>Total Sold</th>
@@ -1651,7 +1652,7 @@ async function loadProducts(productCount) {
     }
     
     const batchResults = await Promise.all(batch);
-    batchResults.forEach((product, index) => {
+    batchResults.forEach((product) => {
       products.push(product);
       renderProductRow(product);
     });
@@ -1688,6 +1689,7 @@ function renderProductRow(product) {
   row.innerHTML = `
     <td>${product.id}</td>
     <td>${product.name}</td>
+    <td><a href="${NETWORKS[currentChainId].explorer}/address/${product.productAddress}" target="_blank">${product.productAddress.substr(0,6)}...${product.productAddress.substr(-4)}</a></td>
     <td>${web3.utils.fromWei(product.price)} ${NETWORKS[currentChainId].symbol}</td>
     <td>${product.availableSupply}</td>
     <td>${product.totalSold}</td>
@@ -1711,6 +1713,9 @@ function renderProductRow(product) {
         <button class="btn ${product.isActive ? 'btn-danger' : 'btn-success'} btn-sm" 
                 onclick="toggleProduct(${product.id})">
           ${product.isActive ? '<i class="fas fa-times"></i>' : '<i class="fas fa-check"></i>'}
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="recalibrateProduct(${product.id})">
+          <i class="fas fa-sync-alt"></i>
         </button>
       </div>
     </td>
@@ -1787,6 +1792,18 @@ async function updateProduct(formData) {
     
     closeModal('update-product-modal');
     showNotification('success', 'Success', 'Product updated successfully');
+    await loadDashboardData();
+  } catch (error) {
+    showNotification('error', 'Error', formatError(error));
+  }
+}
+
+async function recalibrateProduct(productId) {
+  try {
+    await contract.methods.recalibrateProduct(productId)
+      .send({ from: currentAccount });
+    
+    showNotification('success', 'Success', 'Product recalibrated successfully');
     await loadDashboardData();
   } catch (error) {
     showNotification('error', 'Error', formatError(error));
