@@ -426,6 +426,7 @@ body {
 <div class="dashboard">
   <!-- Sidebar -->
   <div class="sidebar">
+    <!-- Sidebar content -->
     <div class="sidebar-header">
       <div class="logo-container">
         <img src="https://ipfs.io/ipfs/QmQX4HvtqdYVuJHm17JTyGkK1ttFitg4oAhPzXdy6psm1T" 
@@ -567,7 +568,7 @@ body {
       </div>
       <div class="form-group">
         <label>IPFS CID</label>
-        <input type="text" name="ipfsCid" required>
+        <input type="text" name="ipfsCID" required>
       </div>
       <div class="form-group">
         <label>Product Token Address</label>
@@ -575,15 +576,11 @@ body {
       </div>
       <div class="form-group">
         <label>Payment Token Address</label>
-        <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
+        <input type="text" name="paymentToken" placeholder="Use 0x000...000 for native token">
       </div>
       <div class="form-group">
-        <label>Price (in wei)</label>
-        <input type="number" name="price" required>
-      </div>
-      <div class="form-group">
-        <label>Initial Supply</label>
-        <input type="number" name="supply" required>
+        <label>Price (in Ether)</label>
+        <input type="number" name="price" step="any" required>
       </div>
       <div class="form-group">
         <label>Beneficiary Address</label>
@@ -602,16 +599,12 @@ body {
     <form id="update-product-form">
       <input type="hidden" name="productId">
       <div class="form-group">
-        <label>New Price (in wei)</label>
-        <input type="number" name="newPrice">
-      </div>
-      <div class="form-group">
-        <label>Additional Supply</label>
-        <input type="number" name="additionalSupply">
+        <label>New Price (in Ether)</label>
+        <input type="number" name="newPrice" step="any">
       </div>
       <div class="form-group">
         <label>New IPFS CID</label>
-        <input type="text" name="newIpfsCid">
+        <input type="text" name="newIpfsCID">
       </div>
       <button type="submit" class="btn btn-primary">Update Product</button>
       <button type="button" class="btn btn-secondary" onclick="closeModal('update-product-modal')">Cancel</button>
@@ -639,8 +632,8 @@ body {
 </div>
 
 <script>
-// Contract ABI Definition
-const CONTRACT_ABI = [
+// Contract ABIs
+const VENDING_MACHINE_ABI = [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
@@ -666,17 +659,6 @@ const CONTRACT_ABI = [
 			}
 		],
 		"name": "OwnableUnauthorizedAccount",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			}
-		],
-		"name": "SafeERC20FailedOperation",
 		"type": "error"
 	},
 	{
@@ -718,12 +700,6 @@ const CONTRACT_ABI = [
 				"internalType": "address",
 				"name": "creator",
 				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
 			},
 			{
 				"indexed": false,
@@ -816,20 +792,8 @@ const CONTRACT_ABI = [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "productToken",
+				"name": "productAddress",
 				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "price",
-				"type": "uint256"
 			},
 			{
 				"indexed": false,
@@ -981,37 +945,6 @@ const CONTRACT_ABI = [
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
-			}
-		],
-		"name": "TokensWithdrawn",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
 				"indexed": false,
 				"internalType": "address",
 				"name": "account",
@@ -1020,10 +953,6 @@ const CONTRACT_ABI = [
 		],
 		"name": "Unpaused",
 		"type": "event"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "fallback"
 	},
 	{
 		"inputs": [],
@@ -1128,6 +1057,62 @@ const CONTRACT_ABI = [
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "getProductBasicInfo",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "ipfsCID",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "productAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "creator",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "beneficiary",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "isActive",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "emergencyLocked",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct TestVendingMachine.ProductBasicInfo",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "getProductCount",
 		"outputs": [
@@ -1148,91 +1133,44 @@ const CONTRACT_ABI = [
 				"type": "uint256"
 			}
 		],
-		"name": "getProductDetails",
+		"name": "getProductExtendedInfo",
 		"outputs": [
 			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "ipfsCID",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "productToken",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "price",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "availableSupply",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isActive",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalSold",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalRevenue",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "beneficiary",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "emergencyLocked",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "productId",
-				"type": "uint256"
-			}
-		],
-		"name": "getProductRevenue",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "totalSold",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalRevenue",
-				"type": "uint256"
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "productToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "paymentToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "availableSupply",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalSold",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalRevenue",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct TestVendingMachine.ProductExtendedInfo",
+				"name": "",
+				"type": "tuple"
 			}
 		],
 		"stateMutability": "view",
@@ -1312,33 +1250,8 @@ const CONTRACT_ABI = [
 			},
 			{
 				"internalType": "address",
-				"name": "productToken",
+				"name": "productAddress",
 				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "price",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isActive",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalSold",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalRevenue",
-				"type": "uint256"
 			},
 			{
 				"internalType": "address",
@@ -1349,6 +1262,11 @@ const CONTRACT_ABI = [
 				"internalType": "address",
 				"name": "beneficiary",
 				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isActive",
+				"type": "bool"
 			},
 			{
 				"internalType": "bool",
@@ -1375,6 +1293,19 @@ const CONTRACT_ABI = [
 		"name": "purchaseProduct",
 		"outputs": [],
 		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "productId",
+				"type": "uint256"
+			}
+		],
+		"name": "recalibrateProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1494,12 +1425,424 @@ const CONTRACT_ABI = [
 		],
 		"stateMutability": "view",
 		"type": "function"
+	}
+];
+
+const PRODUCT_CONTRACT_ABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_creator",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_vendingMachine",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "OwnableInvalidOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
 	},
 	{
 		"inputs": [
 			{
 				"internalType": "address",
 				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "SafeERC20FailedOperation",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "ipfsCID",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductDetailsSet",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "paymentAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductPurchased",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "newIpfsCID",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "updater",
+				"type": "address"
+			}
+		],
+		"name": "ProductUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "vendingMachine",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "VendingMachineSet",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "beneficiary",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "emergencyLocked",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "emergencyWithdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getProductDetails",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "_productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_availableSupply",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "_isActive",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_totalSold",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_totalRevenue",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_creator",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_beneficiary",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "_emergencyLocked",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ipfsCID",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isActive",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "isProductAvailable",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paymentToken",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "price",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "productToken",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "buyer",
 				"type": "address"
 			},
 			{
@@ -1508,28 +1851,179 @@ const CONTRACT_ABI = [
 				"type": "uint256"
 			}
 		],
-		"name": "withdrawTokens",
+		"name": "purchaseProduct",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "paymentAmount",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "recalibrate",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"stateMutability": "payable",
-		"type": "receive"
+		"inputs": [
+			{
+				"internalType": "bool",
+				"name": "_isActive",
+				"type": "bool"
+			}
+		],
+		"name": "setActiveStatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bool",
+				"name": "_emergencyLocked",
+				"type": "bool"
+			}
+		],
+		"name": "setEmergencyLock",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_ipfsCID",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "_productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_beneficiary",
+				"type": "address"
+			}
+		],
+		"name": "setProductDetails",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalRevenue",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSold",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "newIpfsCID",
+				"type": "string"
+			}
+		],
+		"name": "updateProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "vendingMachine",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	}
 ];
 
-let web3;
-let contract;
-let currentAccount;
-let currentChainId;
-let products = [];
-
+// Network configurations
 const NETWORKS = {
   50: {
     name: 'XDC Mainnet',
     rpcUrl: 'https://rpc.xinfin.network',
-    contractAddress: '0x1aa50dAe8DE411c71db6A77e2C0A9ceE35C8BBd1',
+    vendingMachineAddress: '0x0F53b47424FaFc8501ADF7f40E9920aC8DA925D7',
     symbol: 'XDC',
     explorer: 'https://explorer.xinfin.network',
     chainParams: {
@@ -1543,7 +2037,7 @@ const NETWORKS = {
   43114: {
     name: 'Avalanche C-Chain',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-    contractAddress: '0xe90bCeef5AC65a36199Cfa29552FBCF36BE531A0',
+    vendingMachineAddress: '0xe90bCeef5AC65a36199Cfa29552FBCF36BE531A0',
     symbol: 'AVAX',
     explorer: 'https://snowtrace.io',
     chainParams: {
@@ -1557,7 +2051,7 @@ const NETWORKS = {
   137: {
     name: 'Polygon Mainnet',
     rpcUrl: 'https://polygon-rpc.com',
-    contractAddress: '0xd3A42e2aDEc479dAd1C08F76a635da9e6bc888f5',
+    vendingMachineAddress: '0xd3A42e2aDEc479dAd1C08F76a635da9e6bc888f5',
     symbol: 'POL',
     explorer: 'https://polygonscan.com',
     chainParams: {
@@ -1570,48 +2064,63 @@ const NETWORKS = {
   }
 };
 
-// Function to initialize Web3 and connect to the wallet
-async function connectWallet() {
-  if (typeof window.ethereum !== 'undefined') {
-    try {
-      // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+// Global variables
+let web3;
+let vendingMachineContract;
+let currentAccount;
+let currentChainId;
+let products = [];
+
+// Initialize the application
+async function initApp() {
+  // Check for MetaMask
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    const accounts = await web3.eth.getAccounts();
+    if (accounts.length > 0) {
       currentAccount = accounts[0];
-
-      web3 = new Web3(window.ethereum);
-
-      // Get current network
-      const chainId = await web3.eth.getChainId();
-      await handleNetworkChange(chainId);
-
-      // Set up event listeners
-      window.ethereum.on('accountsChanged', handleAccountChange);
-      window.ethereum.on('chainChanged', handleNetworkChange);
-
-      // Update UI with connected account
       document.getElementById('connected-address').textContent = 
         `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
-
-      // Setup contract events
-      setupContractEvents();
-
-      showNotification('success', 'Connected', 'Successfully connected to wallet');
-    } catch (error) {
-      console.error('Error connecting to wallet:', error);
-      showNotification('error', 'Connection Failed', formatError(error));
     }
+    currentChainId = await web3.eth.getChainId();
+
+    // Load initial data
+    await handleNetworkChange(currentChainId);
+
+    // Set up event listeners
+    setupEventListeners();
   } else {
-    showNotification('error', 'Web3 Not Found', 'Please install MetaMask');
+    console.error('MetaMask not found');
+    showNotification('error', 'MetaMask Not Found', 'Please install MetaMask to use this application.');
   }
 }
 
-// Event listener for Connect Wallet button
-document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+// Handle network change
+async function handleNetworkChange(chainId) {
+  currentChainId = parseInt(chainId, 16) || chainId; // Convert hex to decimal if necessary
+  const network = NETWORKS[currentChainId];
 
-// Handle account changes
+  if (!network) {
+    showNotification('error', 'Unsupported Network', 'Please switch to a supported network.');
+    return;
+  }
+
+  // Initialize vending machine contract
+  vendingMachineContract = new web3.eth.Contract(VENDING_MACHINE_ABI, network.vendingMachineAddress);
+
+  // Update UI
+  document.getElementById('current-network').textContent = `Network: ${network.name}`;
+
+  // Update network selector
+  document.getElementById('network-select').value = currentChainId;
+
+  // Load dashboard data
+  await loadDashboardData();
+}
+
+// Handle account change
 async function handleAccountChange(accounts) {
   if (accounts.length === 0) {
-    // User has disconnected their wallet
     currentAccount = null;
     document.getElementById('connected-address').textContent = 'Not Connected';
     showNotification('warning', 'Disconnected', 'Please connect your wallet');
@@ -1623,85 +2132,7 @@ async function handleAccountChange(accounts) {
   }
 }
 
-// Handle network changes
-async function handleNetworkChange(chainId) {
-  currentChainId = parseInt(chainId, 16); // Convert hex chainId to decimal
-  const networkConfig = NETWORKS[currentChainId];
-
-  if (!networkConfig) {
-    showNotification('error', 'Network Error', 'Unsupported network. Please switch to a supported network.');
-    return;
-  }
-
-  document.getElementById('current-network').textContent = `Network: ${networkConfig.name}`;
-  contract = new web3.eth.Contract(CONTRACT_ABI, networkConfig.contractAddress);
-
-  await loadDashboardData();
-}
-
-// Function to switch network
-async function switchNetwork(targetChainId) {
-  try {
-    const networkConfig = NETWORKS[targetChainId];
-    if (!networkConfig) throw new Error('Unsupported network');
-
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: networkConfig.chainParams.chainId }]
-    });
-  } catch (error) {
-    // If the chain has not been added to MetaMask, add it
-    if (error.code === 4902) {
-      try {
-        const networkConfig = NETWORKS[targetChainId];
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [networkConfig.chainParams]
-        });
-      } catch (addError) {
-        console.error('Error adding network:', addError);
-        showNotification('error', 'Network Error', 'Failed to add network to MetaMask');
-      }
-    } else {
-      console.error('Error switching network:', error);
-      showNotification('error', 'Network Error', 'Failed to switch network');
-    }
-  }
-}
-
-// Event listener for network selector
-document.getElementById('network-select').addEventListener('change', async (e) => {
-  const targetChainId = parseInt(e.target.value);
-  await switchNetwork(targetChainId);
-});
-
-// Contract events setup
-function setupContractEvents() {
-  if (!contract) return;
-
-  const events = [
-    'ProductAdded',
-    'ProductUpdated',
-    'ProductStatusChanged',
-    'EmergencyWithdrawalRequested',
-    'EmergencyWithdrawalExecuted',
-    'CreatorWhitelisted'
-  ];
-
-  events.forEach(eventName => {
-    contract.events[eventName]({})
-      .on('data', async (event) => {
-        console.log(`${eventName} event:`, event);
-        showNotification('success', eventName, 'Event detected, refreshing data...');
-        await loadDashboardData();
-      })
-      .on('error', error => {
-        console.error(`Error in ${eventName} event:`, error);
-      });
-  });
-}
-
-// Dashboard data loading
+// Load dashboard data
 async function loadDashboardData() {
   try {
     const [
@@ -1709,70 +2140,88 @@ async function loadDashboardData() {
       isPaused,
       balance
     ] = await Promise.all([
-      contract.methods.getProductCount().call(),
-      contract.methods.paused().call(),
-      web3.eth.getBalance(contract._address)
+      vendingMachineContract.methods.getProductCount().call(),
+      vendingMachineContract.methods.paused().call(),
+      web3.eth.getBalance(vendingMachineContract.options.address)
     ]);
 
+    // Update stats
     document.getElementById('total-products').textContent = productCount;
     document.getElementById('contract-balance').textContent = 
       `${web3.utils.fromWei(balance)} ${NETWORKS[currentChainId].symbol}`;
     document.getElementById('contract-status').textContent = isPaused ? 'Paused' : 'Active';
     document.getElementById('toggle-pause').textContent = isPaused ? 'Unpause Contract' : 'Pause Contract';
 
+    // Load products
     await loadProducts(productCount);
+
+    // Load emergency requests
     await loadEmergencyRequests();
+
+    // Update analytics
     updateAnalytics();
   } catch (error) {
-    showNotification('error', 'Loading Error', formatError(error));
+    console.error('Error loading dashboard data:', error);
+    showNotification('error', 'Data Load Error', formatError(error));
   }
 }
 
-// Products loading
+// Load products
 async function loadProducts(productCount) {
-  const BATCH_SIZE = 5;
+  products = [];
   const productList = document.getElementById('product-list');
   productList.innerHTML = '';
-  products = [];
 
-  for (let i = 0; i < productCount; i += BATCH_SIZE) {
-    const batch = [];
-    for (let j = i; j < Math.min(i + BATCH_SIZE, productCount); j++) {
-      batch.push(loadProductDetails(j));
-    }
-    
-    const batchResults = await Promise.all(batch);
-    batchResults.forEach((product, index) => {
+  for (let i = 0; i < productCount; i++) {
+    try {
+      // Fetch product basic and extended info
+      const [basicInfo, extendedInfo] = await Promise.all([
+        vendingMachineContract.methods.getProductBasicInfo(i).call(),
+        vendingMachineContract.methods.getProductExtendedInfo(i).call()
+      ]);
+
+      const product = {
+        id: i,
+        name: basicInfo.name,
+        ipfsCID: basicInfo.ipfsCID,
+        productAddress: basicInfo.productAddress,
+        creator: basicInfo.creator,
+        beneficiary: basicInfo.beneficiary,
+        isActive: basicInfo.isActive,
+        emergencyLocked: basicInfo.emergencyLocked,
+        price: extendedInfo.price,
+        productToken: extendedInfo.productToken,
+        paymentToken: extendedInfo.paymentToken,
+        availableSupply: extendedInfo.availableSupply,
+        totalSold: extendedInfo.totalSold,
+        totalRevenue: extendedInfo.totalRevenue
+      };
+
+      // Add product to global array
       products.push(product);
-      renderProductRow(product, i + index);
-    });
+
+      // Render product row
+      renderProductRow(product);
+
+    } catch (error) {
+      console.error(`Error loading product ${i}:`, error);
+    }
   }
 }
 
-async function loadProductDetails(productId) {
-  const [details, revenue] = await Promise.all([
-    contract.methods.getProductDetails(productId).call(),
-    contract.methods.getProductRevenue(productId).call()
-  ]);
-
-  return {
-    id: productId,
-    ...details,
-    totalSold: revenue[0],
-    totalRevenue: revenue[1]
-  };
-}
-
-function renderProductRow(product, index) {
+// Render product row
+function renderProductRow(product) {
   const productList = document.getElementById('product-list');
+  const networkSymbol = NETWORKS[currentChainId].symbol;
   const row = document.createElement('tr');
+
   row.innerHTML = `
-    <td>${index}</td>
+    <td>${product.id}</td>
     <td>${product.name}</td>
-    <td>${web3.utils.fromWei(product.price)} ${NETWORKS[currentChainId].symbol}</td>
-    <td>${product.availableSupply}</td>
-    <td>${product.totalSold}</td>
-    <td>${web3.utils.fromWei(product.totalRevenue)} ${NETWORKS[currentChainId].symbol}</td>
+    <td>${web3.utils.fromWei(product.price)} ${networkSymbol}</td>
+    <td>${web3.utils.fromWei(product.availableSupply.toString())}</td>
+    <td>${web3.utils.fromWei(product.totalSold.toString())}</td>
+    <td>${web3.utils.fromWei(product.totalRevenue.toString())} ${networkSymbol}</td>
     <td>
       <span class="status-badge ${product.isActive ? 'active' : 'inactive'}">
         ${product.isActive ? 'Active' : 'Inactive'}
@@ -1781,38 +2230,39 @@ function renderProductRow(product, index) {
     <td>
       ${product.emergencyLocked ? 
         '<span class="emergency-badge">Locked</span>' : 
-        `<button class="btn btn-warning btn-sm" onclick="showEmergencyModal(${index})">Request</button>`
+        `<button class="btn btn-warning btn-sm" onclick="showEmergencyModal(${product.id})">Request</button>`
       }
     </td>
     <td>
       <div class="action-buttons">
-        <button class="btn btn-primary btn-sm" onclick="showUpdateModal(${index})">
+        <button class="btn btn-primary btn-sm" onclick="showUpdateModal(${product.id})">
           <i class="fas fa-edit"></i>
         </button>
         <button class="btn ${product.isActive ? 'btn-danger' : 'btn-success'} btn-sm" 
-                onclick="toggleProduct(${index})">
+                onclick="toggleProduct(${product.id})">
           ${product.isActive ? '<i class="fas fa-times"></i>' : '<i class="fas fa-check"></i>'}
         </button>
       </div>
     </td>
   `;
+
   productList.appendChild(row);
 }
 
-// Emergency requests
+// Load emergency requests
 async function loadEmergencyRequests() {
   const emergencyList = document.getElementById('emergency-list');
   emergencyList.innerHTML = '';
   
   const requests = [];
-  const productCount = await contract.methods.getProductCount().call();
+  const productCount = await vendingMachineContract.methods.getProductCount().call();
   
   for (let i = 0; i < productCount; i++) {
-    const isRequested = await contract.methods.emergencyWithdrawalRequested(i).call();
+    const isRequested = await vendingMachineContract.methods.emergencyWithdrawalRequested(i).call();
     if (isRequested) {
       const [product, withdrawalTime] = await Promise.all([
-        contract.methods.getProductDetails(i).call(),
-        contract.methods.emergencyWithdrawalTime(i).call()
+        vendingMachineContract.methods.getProductBasicInfo(i).call(),
+        vendingMachineContract.methods.emergencyWithdrawalTime(i).call()
       ]);
       
       const timeLeft = (parseInt(withdrawalTime) + 86400) - Math.floor(Date.now() / 1000);
@@ -1837,112 +2287,155 @@ async function loadEmergencyRequests() {
   emergencyList.innerHTML = requests.join('') || '<p>No emergency requests</p>';
 }
 
-// Product Management Functions
+// Add Product
 async function addProduct(formData) {
   try {
-    await contract.methods.addProduct(
-      formData.get('name'),
-      formData.get('ipfsCid'),
-      formData.get('productToken'),
-      formData.get('paymentToken'),
-      formData.get('price'),
-      formData.get('supply'),
-      formData.get('beneficiary')
+    const name = formData.get('name').trim();
+    const ipfsCID = formData.get('ipfsCID').trim();
+    const productToken = formData.get('productToken').trim();
+    let paymentToken = formData.get('paymentToken').trim();
+    const price = formData.get('price').trim();
+    const beneficiary = formData.get('beneficiary').trim();
+
+    if (!web3.utils.isAddress(productToken) || !web3.utils.isAddress(beneficiary)) {
+      showNotification('error', 'Invalid Address', 'Please enter valid Ethereum addresses.');
+      return;
+    }
+
+    if (!paymentToken) {
+      paymentToken = '0x0000000000000000000000000000000000000000';
+    } else if (!web3.utils.isAddress(paymentToken)) {
+      showNotification('error', 'Invalid Payment Token Address', 'Please enter a valid payment token address.');
+      return;
+    }
+
+    const priceInWei = web3.utils.toWei(price.toString(), 'ether');
+
+    await vendingMachineContract.methods.addProduct(
+      name,
+      ipfsCID,
+      productToken,
+      paymentToken,
+      priceInWei,
+      beneficiary
     ).send({ from: currentAccount });
-    
+
     closeModal('add-product-modal');
     showNotification('success', 'Success', 'Product added successfully');
     await loadDashboardData();
   } catch (error) {
+    console.error('Error adding product:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
+// Update Product
 async function updateProduct(formData) {
   try {
     const productId = formData.get('productId');
-    await contract.methods.updateProduct(
+    const newPrice = formData.get('newPrice').trim();
+    const newIpfsCID = formData.get('newIpfsCID').trim();
+
+    let newPriceInWei = '0';
+    if (newPrice) {
+      newPriceInWei = web3.utils.toWei(newPrice.toString(), 'ether');
+    }
+
+    await vendingMachineContract.methods.updateProduct(
       productId,
-      formData.get('newPrice') || '0',
-      formData.get('additionalSupply') || '0',
-      formData.get('newIpfsCid') || ''
+      newPriceInWei,
+      newIpfsCID
     ).send({ from: currentAccount });
-    
+
     closeModal('update-product-modal');
     showNotification('success', 'Success', 'Product updated successfully');
     await loadDashboardData();
   } catch (error) {
+    console.error('Error updating product:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
+// Toggle Product Status
 async function toggleProduct(productId) {
   try {
-    const product = await contract.methods.getProductDetails(productId).call();
-    await contract.methods.setProductStatus(productId, !product.isActive)
+    const basicInfo = await vendingMachineContract.methods.getProductBasicInfo(productId).call();
+    await vendingMachineContract.methods.setProductStatus(productId, !basicInfo.isActive)
       .send({ from: currentAccount });
     
-    showNotification('success', 'Success', `Product ${product.isActive ? 'deactivated' : 'activated'}`);
+    showNotification('success', 'Success', `Product ${basicInfo.isActive ? 'deactivated' : 'activated'}`);
     await loadDashboardData();
   } catch (error) {
+    console.error('Error toggling product status:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
+// Request Emergency Withdrawal
 async function requestEmergencyWithdrawal(productId) {
   try {
-    await contract.methods.requestEmergencyWithdrawal(productId)
+    await vendingMachineContract.methods.requestEmergencyWithdrawal(productId)
       .send({ from: currentAccount });
     
     closeModal('emergency-request-modal');
     showNotification('success', 'Success', 'Emergency withdrawal requested');
     await loadDashboardData();
   } catch (error) {
+    console.error('Error requesting emergency withdrawal:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
+// Execute Emergency Withdrawal
 async function executeEmergencyWithdrawal(productId) {
   try {
-    await contract.methods.executeEmergencyWithdrawal(productId)
+    await vendingMachineContract.methods.executeEmergencyWithdrawal(productId)
       .send({ from: currentAccount });
     
     showNotification('success', 'Success', 'Emergency withdrawal executed');
     await loadDashboardData();
   } catch (error) {
+    console.error('Error executing emergency withdrawal:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
+// Toggle Contract Pause
 async function togglePause() {
   try {
-    const isPaused = await contract.methods.paused().call();
-    await contract.methods[isPaused ? 'unpause' : 'pause']()
+    const isPaused = await vendingMachineContract.methods.paused().call();
+    await vendingMachineContract.methods[isPaused ? 'unpause' : 'pause']()
       .send({ from: currentAccount });
     
     showNotification('success', 'Success', `Contract ${isPaused ? 'unpaused' : 'paused'}`);
     await loadDashboardData();
   } catch (error) {
+    console.error('Error toggling contract pause:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
-// Creator management
+// Whitelist Creator
 async function whitelistCreator() {
-  const address = document.getElementById('creator-address').value;
+  const address = document.getElementById('creator-address').value.trim();
+  if (!web3.utils.isAddress(address)) {
+    showNotification('error', 'Invalid Address', 'Please enter a valid Ethereum address.');
+    return;
+  }
   try {
-    await contract.methods.setCreatorWhitelist(address, true)
+    await vendingMachineContract.methods.setCreatorWhitelist(address, true)
       .send({ from: currentAccount });
     
     showNotification('success', 'Success', 'Creator whitelisted');
     document.getElementById('creator-address').value = '';
     await loadDashboardData();
   } catch (error) {
+    console.error('Error whitelisting creator:', error);
     showNotification('error', 'Error', formatError(error));
   }
 }
 
-// Analytics Functions
+// Update Analytics
 function updateAnalytics() {
   if (!products.length) return;
 
@@ -1956,7 +2449,7 @@ function updateAnalytics() {
   const chartData = products.map(p => ({
     name: p.name,
     revenue: parseFloat(web3.utils.fromWei(p.totalRevenue)),
-    sales: parseInt(p.totalSold)
+    sales: parseFloat(web3.utils.fromWei(p.totalSold))
   }));
 
   // Revenue Chart
@@ -2034,21 +2527,7 @@ function updateAnalytics() {
 
 // UI Helper Functions
 function showNotification(type, title, message) {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type} show`;
-  notification.innerHTML = `
-    <div class="notification-content">
-      <div class="notification-title">${title}</div>
-      <div class="notification-message">${message}</div>
-    </div>
-    <button class="notification-close" onclick="this.parentElement.remove()">×</button>
-  `;
-  
-  document.body.appendChild(notification);
-  setTimeout(() => {
-    notification.classList.remove('show');
-    setTimeout(() => notification.remove(), 300);
-  }, 5000);
+  toastr[type](message, title);
 }
 
 function showModal(modalId) {
@@ -2064,6 +2543,11 @@ function closeModal(modalId) {
 function showUpdateModal(productId) {
   const form = document.getElementById('update-product-form');
   form.elements['productId'].value = productId;
+
+  const product = products.find(p => p.id === productId);
+  form.elements['newPrice'].value = web3.utils.fromWei(product.price);
+  form.elements['newIpfsCID'].value = product.ipfsCID;
+
   showModal('update-product-modal');
 }
 
@@ -2091,85 +2575,95 @@ function formatError(error) {
   return 'An unexpected error occurred';
 }
 
-// Initialize UI elements and event listeners after the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-  // Check if wallet is already connected
-  if (typeof window.ethereum !== 'undefined') {
-    web3 = new Web3(window.ethereum);
-    web3.eth.getAccounts().then(accounts => {
-      if (accounts.length > 0) {
-        currentAccount = accounts[0];
-        document.getElementById('connected-address').textContent = 
-          `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
-        web3.eth.getChainId().then(chainId => {
-          handleNetworkChange(chainId);
-        });
-      }
-    });
+// Connect Wallet
+async function connectWallet() {
+  if (window.ethereum) {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      currentAccount = accounts[0];
+      document.getElementById('connected-address').textContent = 
+        `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
 
-    // Set up event listeners
+      currentChainId = await web3.eth.getChainId();
+      await handleNetworkChange(currentChainId);
+
+      showNotification('success', 'Connected', 'Successfully connected to wallet');
+    } catch (error) {
+      console.error('Error connecting to wallet:', error);
+      showNotification('error', 'Connection Failed', formatError(error));
+    }
+  } else {
+    showNotification('error', 'MetaMask Not Found', 'Please install MetaMask to use this application.');
+  }
+}
+
+// Switch Network
+async function switchNetwork(targetChainId) {
+  try {
+    const networkConfig = NETWORKS[targetChainId];
+    if (!networkConfig) throw new Error('Unsupported network');
+
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: networkConfig.chainParams.chainId }]
+    });
+  } catch (error) {
+    if (error.code === 4902) {
+      try {
+        const networkConfig = NETWORKS[targetChainId];
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [networkConfig.chainParams]
+        });
+      } catch (addError) {
+        console.error('Error adding network:', addError);
+        showNotification('error', 'Network Error', 'Failed to add network to MetaMask');
+      }
+    } else {
+      console.error('Error switching network:', error);
+      showNotification('error', 'Network Error', 'Failed to switch network');
+    }
+  }
+}
+
+// Event Listeners Setup
+function setupEventListeners() {
+  // MetaMask events
+  if (window.ethereum) {
     window.ethereum.on('accountsChanged', handleAccountChange);
     window.ethereum.on('chainChanged', handleNetworkChange);
-  } else {
-    console.warn('MetaMask is not installed');
   }
 
-  // Set up other UI event listeners
-  setupUIElements();
-});
+  // Connect wallet button
+  document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
 
-function setupUIElements() {
-  // Event Listeners
+  // Network selector
   document.getElementById('network-select').addEventListener('change', async (e) => {
-    try {
-      await switchNetwork(parseInt(e.target.value));
-    } catch (error) {
-      showNotification('error', 'Network Switch Failed', formatError(error));
-    }
+    await switchNetwork(parseInt(e.target.value));
   });
 
+  // Add product form
   document.getElementById('add-product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try {
-      await addProduct(new FormData(e.target));
-    } catch (error) {
-      showNotification('error', 'Add Product Failed', formatError(error));
-    }
+    await addProduct(new FormData(e.target));
   });
 
+  // Update product form
   document.getElementById('update-product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try {
-      await updateProduct(new FormData(e.target));
-    } catch (error) {
-      showNotification('error', 'Update Failed', formatError(error));
-    }
+    await updateProduct(new FormData(e.target));
   });
 
-  document.getElementById('whitelist-creator').addEventListener('click', async () => {
-    try {
-      await whitelistCreator();
-    } catch (error) {
-      showNotification('error', 'Whitelist Failed', formatError(error));
-    }
-  });
+  // Whitelist creator button
+  document.getElementById('whitelist-creator').addEventListener('click', whitelistCreator);
 
-  document.getElementById('toggle-pause').addEventListener('click', async () => {
-    try {
-      await togglePause();
-    } catch (error) {
-      showNotification('error', 'Toggle Pause Failed', formatError(error));
-    }
-  });
+  // Toggle pause button
+  document.getElementById('toggle-pause').addEventListener('click', togglePause);
 
-  document.getElementById('refresh-products').addEventListener('click', async () => {
-    try {
-      await loadDashboardData();
-    } catch (error) {
-      showNotification('error', 'Refresh Failed', formatError(error));
-    }
-  });
+  // Refresh products button
+  document.getElementById('refresh-products').addEventListener('click', loadDashboardData);
 
+  // Add product button
   document.getElementById('add-product-btn').addEventListener('click', () => {
     showModal('add-product-modal');
   });
@@ -2181,6 +2675,9 @@ function setupUIElements() {
     }
   });
 }
+
+// Initialize application on page load
+window.addEventListener('load', initApp);
 </script>
 </body>
 </html>
