@@ -457,7 +457,7 @@
           <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
         </div>
         <div class="form-group">
-          <label>Initial Price (in wei)</label>
+          <label>Initial Price</label>
           <input type="number" name="initialPrice" required>
         </div>
         <div class="form-group">
@@ -492,7 +492,7 @@
       <form id="update-price-form">
         <input type="hidden" name="vaultId">
         <div class="form-group">
-          <label>New Price (in wei)</label>
+          <label>New Price</label>
           <input type="number" name="newPrice" required>
         </div>
         <button type="submit" class="btn btn-primary">Update Price</button>
@@ -648,7 +648,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
   <script>
-    // Replace with your VendingVaultManager ABI
     const CONTRACT_ABI = [
 	{
 		"inputs": [
@@ -2005,14 +2004,14 @@
 	}
 ];
 
-    // Replace with your contract address for each network
     const NETWORKS = {
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
+        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c',
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
+        decimals: 18,
         chainParams: {
           chainId: '0x32',
           chainName: 'XDC Mainnet',
@@ -2024,9 +2023,10 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
+        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c',
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
+        decimals: 18,
         chainParams: {
           chainId: '0xA86A',
           chainName: 'Avalanche C-Chain',
@@ -2038,13 +2038,14 @@
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
-        symbol: 'MATIC',
+        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c',
+        symbol: 'POL',
         explorer: 'https://polygonscan.com',
+        decimals: 18,
         chainParams: {
           chainId: '0x89',
           chainName: 'Polygon Mainnet',
-          nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+          nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
           rpcUrls: ['https://polygon-rpc.com'],
           blockExplorerUrls: ['https://polygonscan.com']
         }
@@ -2058,7 +2059,6 @@
     let vaults = [];
     let beneficiaryAddress;
 
-    // Initialize Web3 and connect to the wallet
     async function connectWallet() {
       if (typeof window.ethereum !== 'undefined') {
         try {
@@ -2227,17 +2227,17 @@
           }
         }
 
-        document.getElementById('total-deposits').textContent = totalDeposits;
+        document.getElementById('total-deposits').textContent = totalDeposits.toLocaleString();
 
         const isPaused = await contract.methods.paused().call();
         document.getElementById('contract-status').textContent = isPaused ? 'Paused' : 'Active';
         document.getElementById('toggle-contract-pause-btn').textContent = isPaused ? 'Unpause Contract' : 'Pause Contract';
 
         const balance = await web3.eth.getBalance(contract.options.address);
+        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         document.getElementById('contract-balance').textContent =
-          `${web3.utils.fromWei(balance)} ${NETWORKS[currentChainId].symbol}`;
+          `${parseFloat(formattedBalance).toLocaleString()} ${NETWORKS[currentChainId].symbol}`;
 
-        // Get Beneficiary Address
         beneficiaryAddress = await contract.methods.beneficiary().call();
 
         renderVaults();
@@ -2256,8 +2256,10 @@
         const vaultCard = document.createElement('div');
         vaultCard.className = 'vault-card';
 
-        // Calculate available supply
         const availableSupply = parseInt(vault.totalProduct) + parseInt(vault.unsharedProduct);
+        const pricePerUnit = web3.utils.fromWei(vault.price, 'ether');
+        const totalProfit = web3.utils.fromWei(vault.totalProfit, 'ether');
+        const unsharedProfit = web3.utils.fromWei(vault.unsharedProfit, 'ether');
 
         vaultCard.innerHTML = `
           <div class="vault-header">
@@ -2268,15 +2270,15 @@
           </div>
           <div class="vault-details">
             <p><strong>Product Name:</strong> ${vault.productName}</p>
-            <p><strong>Available Supply:</strong> ${availableSupply}</p>
+            <p><strong>Available Supply:</strong> ${availableSupply.toLocaleString()}</p>
             <p><strong>Product Token:</strong> <a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></p>
             <p><strong>Payment Token:</strong> ${vault.isNativePayment ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
-            <p><strong>Price per Unit:</strong> ${web3.utils.fromWei(vault.price)} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
-            <p><strong>Total Product:</strong> ${vault.totalProduct}</p>
-            <p><strong>Unshared Product:</strong> ${vault.unsharedProduct}</p>
-            <p><strong>Total Shares:</strong> ${vault.totalShares}</p>
-            <p><strong>Total Profit:</strong> ${web3.utils.fromWei(vault.totalProfit)}</p>
-            <p><strong>Unshared Profit:</strong> ${web3.utils.fromWei(vault.unsharedProfit)}</p>
+            <p><strong>Price per Unit:</strong> ${parseFloat(pricePerUnit).toLocaleString()} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
+            <p><strong>Total Product:</strong> ${parseInt(vault.totalProduct).toLocaleString()}</p>
+            <p><strong>Unshared Product:</strong> ${parseInt(vault.unsharedProduct).toLocaleString()}</p>
+            <p><strong>Total Shares:</strong> ${parseInt(vault.totalShares).toLocaleString()}</p>
+            <p><strong>Total Profit:</strong> ${parseFloat(totalProfit).toLocaleString()}</p>
+            <p><strong>Unshared Profit:</strong> ${parseFloat(unsharedProfit).toLocaleString()}</p>
           </div>
           <div class="vault-actions">
             <button class="btn btn-primary btn-sm" onclick="showUpdatePriceModal(${vault.id})">
@@ -2310,18 +2312,16 @@
       });
     }
 
-    // Function to show Buy Product Modal
     function showBuyProductModal(vaultId) {
       const form = document.getElementById('buy-product-form');
       form.reset();
       form.elements['vaultId'].value = vaultId;
       const vault = vaults.find(v => v.id === vaultId);
-      const pricePerUnit = web3.utils.fromWei(vault.price);
-      document.getElementById('buy-product-price').textContent = `Price per Unit: ${pricePerUnit} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}`;
+      const pricePerUnit = web3.utils.fromWei(vault.price, 'ether');
+      document.getElementById('buy-product-price').textContent = `Price per Unit: ${parseFloat(pricePerUnit).toLocaleString()} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}`;
       showModal('buy-product-modal');
     }
 
-    // Event listener for Buy Product form
     document.getElementById('buy-product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -2346,7 +2346,8 @@
         if (vault.isNativePayment) {
           await contract.methods.buyProduct(vaultId, amount).send({ from: currentAccount, value: cost.toString() });
         } else {
-          const paymentToken = new web3.eth.Contract(CONTRACT_ABI, vault.paymentToken);
+          const paymentTokenAbi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
+          const paymentToken = new web3.eth.Contract(paymentTokenAbi, vault.paymentToken);
           const allowance = await paymentToken.methods.allowance(currentAccount, contract.options.address).call();
           if (web3.utils.toBN(allowance).lt(cost)) {
             await paymentToken.methods.approve(contract.options.address, cost.toString()).send({ from: currentAccount });
@@ -2363,7 +2364,6 @@
 
     // ... [Rest of your existing JavaScript code remains unchanged]
 
-    // Helper functions
     function showModal(modalId) {
       const modal = document.getElementById(modalId);
       modal.classList.add('show');
@@ -2407,7 +2407,7 @@
 
       const chartData = vaults.map(v => ({
         id: v.id,
-        totalProfit: parseFloat(web3.utils.fromWei(v.totalProfit)),
+        totalProfit: parseFloat(web3.utils.fromWei(v.totalProfit, 'ether')),
         totalProduct: parseInt(v.totalProduct),
         totalShares: parseInt(v.totalShares)
       }));
@@ -2447,7 +2447,6 @@
       });
     }
 
-    // Setup UI elements
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
