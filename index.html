@@ -429,7 +429,8 @@
         <div class="admin-section">
           <h2>Admin Functions</h2>
           <div class="admin-controls">
-            <button class="btn btn-primary" id="set-beneficiary-btn"><i class="fas fa-user"></i> Set Beneficiary</button>
+            <button class="btn btn-primary" id="add-manager-btn"><i class="fas fa-user-plus"></i> Add Manager</button>
+            <button class="btn btn-primary" id="remove-manager-btn"><i class="fas fa-user-minus"></i> Remove Manager</button>
             <button class="btn btn-primary" id="add-depositor-btn"><i class="fas fa-user-plus"></i> Add Depositor</button>
             <button class="btn btn-primary" id="remove-depositor-btn"><i class="fas fa-user-minus"></i> Remove Depositor</button>
             <button class="btn btn-primary" id="blacklist-address-btn"><i class="fas fa-ban"></i> Blacklist Address</button>
@@ -458,6 +459,10 @@
         <div class="form-group">
           <label>Initial Price (in wei)</label>
           <input type="number" name="initialPrice" required>
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" name="productName" required>
         </div>
         <div class="form-group">
           <label>Share Token Name</label>
@@ -496,6 +501,22 @@
     </div>
   </div>
 
+  <!-- Update Product Name Modal -->
+  <div id="update-product-name-modal" class="modal">
+    <div class="modal-content">
+      <h2>Update Product Name</h2>
+      <form id="update-product-name-form">
+        <input type="hidden" name="vaultId">
+        <div class="form-group">
+          <label>New Product Name</label>
+          <input type="text" name="newProductName" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Product Name</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('update-product-name-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Deposit Product Modal -->
   <div id="deposit-product-modal" class="modal">
     <div class="modal-content">
@@ -512,17 +533,32 @@
     </div>
   </div>
 
-  <!-- Set Beneficiary Modal -->
-  <div id="set-beneficiary-modal" class="modal">
+  <!-- Add Manager Modal -->
+  <div id="add-manager-modal" class="modal">
     <div class="modal-content">
-      <h2>Set Beneficiary</h2>
-      <form id="set-beneficiary-form">
+      <h2>Add Manager</h2>
+      <form id="add-manager-form">
         <div class="form-group">
-          <label>New Beneficiary Address</label>
-          <input type="text" name="newBeneficiary" required>
+          <label>Manager Address</label>
+          <input type="text" name="managerAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Set Beneficiary</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('set-beneficiary-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Manager</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('add-manager-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Remove Manager Modal -->
+  <div id="remove-manager-modal" class="modal">
+    <div class="modal-content">
+      <h2>Remove Manager</h2>
+      <form id="remove-manager-form">
+        <div class="form-group">
+          <label>Manager Address</label>
+          <input type="text" name="managerAddress" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Remove Manager</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('remove-manager-modal')">Cancel</button>
       </form>
     </div>
   </div>
@@ -595,10 +631,52 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
   <script>
-    // Your JavaScript code with improvements
-
     // Replace with your VendingVaultManager ABI
     const CONTRACT_ABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "addDepositor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "addManager",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyProduct",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
 	{
 		"inputs": [
 			{
@@ -696,6 +774,19 @@
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "blacklistAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -720,6 +811,24 @@
 		],
 		"name": "DepositorRemoved",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "depositProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -759,6 +868,19 @@
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "emergencyWithdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -790,6 +912,89 @@
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "contract IERC20",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "initialPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "shareName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "shareSymbol",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"name": "initializeVault",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"name": "onERC20Received",
+		"outputs": [
+			{
+				"internalType": "bytes4",
+				"name": "",
+				"type": "bytes4"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -809,6 +1014,13 @@
 		"type": "event"
 	},
 	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -820,6 +1032,19 @@
 		],
 		"name": "Paused",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "pauseVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -875,6 +1100,25 @@
 			}
 		],
 		"name": "ProductDeposited",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "newProductName",
+				"type": "string"
+			}
+		],
+		"name": "ProductNameUpdated",
 		"type": "event"
 	},
 	{
@@ -950,6 +1194,78 @@
 		],
 		"name": "ProfitWithdrawn",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "recalibrateVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "removeDepositor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "removeManager",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "unblacklistAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1046,6 +1362,12 @@
 				"internalType": "uint256",
 				"name": "initialPrice",
 				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
 			}
 		],
 		"name": "VaultInitialized",
@@ -1121,39 +1443,7 @@
 	},
 	{
 		"inputs": [],
-		"name": "MAX_DEPOSIT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MIN_DEPOSIT",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "addDepositor",
+		"name": "unpause",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -1161,15 +1451,81 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
 			}
 		],
-		"name": "addManager",
+		"name": "unpauseVault",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "newProductName",
+				"type": "string"
+			}
+		],
+		"name": "updateProductName",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawProfit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawUnsharedProfit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	},
 	{
 		"inputs": [],
@@ -1182,19 +1538,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "blacklistAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1219,42 +1562,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "buyProduct",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "depositProduct",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
@@ -1269,19 +1576,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "emergencyWithdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1431,6 +1725,11 @@
 				"type": "uint256"
 			},
 			{
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
+			},
+			{
 				"internalType": "bool",
 				"name": "isInitialized",
 				"type": "bool"
@@ -1525,50 +1824,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "contract IERC20",
-				"name": "productToken",
-				"type": "address"
-			},
-			{
-				"internalType": "contract IERC20",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "initialPrice",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "shareName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "shareSymbol",
-				"type": "string"
-			},
-			{
-				"internalType": "bool",
-				"name": "isNativePayment",
-				"type": "bool"
-			}
-		],
-		"name": "initializeVault",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "uint256",
 				"name": "vaultId",
 				"type": "uint256"
@@ -1605,37 +1860,29 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_operator",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes",
-				"name": "_data",
-				"type": "bytes"
-			}
-		],
-		"name": "onERC20Received",
+		"inputs": [],
+		"name": "MAX_DEPOSIT",
 		"outputs": [
 			{
-				"internalType": "bytes4",
+				"internalType": "uint256",
 				"name": "",
-				"type": "bytes4"
+				"type": "uint256"
 			}
 		],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MIN_DEPOSIT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -1653,26 +1900,6 @@
 	},
 	{
 		"inputs": [],
-		"name": "pause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "pauseVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "paused",
 		"outputs": [
 			{
@@ -1682,52 +1909,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "recalibrateVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "removeDepositor",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "removeManager",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -1750,70 +1931,6 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "unblacklistAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "unpause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "unpauseVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "newPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "updatePrice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "vaultCount",
 		"outputs": [
@@ -1825,115 +1942,6 @@
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "vaults",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "productToken",
-				"type": "address"
-			},
-			{
-				"internalType": "contract IERC20",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "price",
-				"type": "uint256"
-			},
-			{
-				"internalType": "contract VaultShareToken",
-				"name": "shareToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalProduct",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalShares",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "totalProfit",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "unsharedProduct",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "unsharedProfit",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isInitialized",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "isPaused",
-				"type": "bool"
-			},
-			{
-				"internalType": "bool",
-				"name": "isNativePayment",
-				"type": "bool"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lastPriceUpdate",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "withdrawProfit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "withdrawUnsharedProfit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	}
 ];
 
@@ -1942,7 +1950,7 @@
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0xc5034a20be5d1d0a1692629F49c57b53EBa122FB', // Replace with your contract address
+        contractAddress: '0x478cC77E9F7eCf79fe8A8fa2be97a1aB57cc77fb', // Replace with your contract address
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
         chainParams: {
@@ -1956,7 +1964,7 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0xc5034a20be5d1d0a1692629F49c57b53EBa122FB', // Replace with your contract address
+        contractAddress: '0x478cC77E9F7eCf79fe8A8fa2be97a1aB57cc77fb', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
         chainParams: {
@@ -1970,7 +1978,7 @@
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '0xc5034a20be5d1d0a1692629F49c57b53EBa122FB', // Replace with your contract address
+        contractAddress: '0x478cC77E9F7eCf79fe8A8fa2be97a1aB57cc77fb', // Replace with your contract address
         symbol: 'POL',
         explorer: 'https://polygonscan.com',
         chainParams: {
@@ -2102,7 +2110,8 @@
         'DepositorAdded',
         'DepositorRemoved',
         'Paused',
-        'Unpaused'
+        'Unpaused',
+        'ProductNameUpdated'
       ];
 
       events.forEach(eventName => {
@@ -2139,6 +2148,7 @@
               productToken: basicInfo.productToken,
               paymentToken: basicInfo.paymentToken,
               price: basicInfo.price,
+              productName: basicInfo.productName,
               isInitialized: basicInfo.isInitialized,
               isPaused: basicInfo.isPaused,
               isNativePayment: basicInfo.isNativePayment,
@@ -2188,6 +2198,7 @@
             </span>
           </div>
           <div class="vault-details">
+            <p><strong>Product Name:</strong> ${vault.productName}</p>
             <p><strong>Product Token:</strong> <a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></p>
             <p><strong>Payment Token:</strong> ${vault.isNativePayment ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
             <p><strong>Price:</strong> ${web3.utils.fromWei(vault.price)} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
@@ -2199,6 +2210,9 @@
           <div class="vault-actions">
             <button class="btn btn-primary btn-sm" onclick="showUpdatePriceModal(${vault.id})">
               <i class="fas fa-edit"></i> Update Price
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="showUpdateProductNameModal(${vault.id})">
+              <i class="fas fa-edit"></i> Update Product Name
             </button>
             <button class="btn btn-primary btn-sm" onclick="showDepositProductModal(${vault.id})">
               <i class="fas fa-box"></i> Deposit Product
@@ -2233,6 +2247,7 @@
       const productToken = formData.get('productToken');
       const paymentToken = formData.get('paymentToken');
       const initialPrice = formData.get('initialPrice');
+      const productName = formData.get('productName');
       const shareName = formData.get('shareName');
       const shareSymbol = formData.get('shareSymbol');
       const isNativePayment = formData.get('isNativePayment') === 'true';
@@ -2242,6 +2257,7 @@
           productToken,
           paymentToken,
           initialPrice,
+          productName,
           shareName,
           shareSymbol,
           isNativePayment
@@ -2272,6 +2288,30 @@
         await contract.methods.updatePrice(vaultId, newPrice).send({ from: currentAccount });
         closeModal('update-price-modal');
         showNotification('success', 'Success', 'Price updated successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Function to show Update Product Name Modal
+    function showUpdateProductNameModal(vaultId) {
+      const form = document.getElementById('update-product-name-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+      showModal('update-product-name-modal');
+    }
+
+    // Event listener for Update Product Name form
+    document.getElementById('update-product-name-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const newProductName = formData.get('newProductName');
+      try {
+        await contract.methods.updateProductName(vaultId, newProductName).send({ from: currentAccount });
+        closeModal('update-product-name-modal');
+        showNotification('success', 'Success', 'Product name updated successfully');
         await loadDashboardData();
       } catch (error) {
         showNotification('error', 'Error', formatError(error));
@@ -2359,24 +2399,45 @@
     });
 
     // Admin Function Modals
-    document.getElementById('set-beneficiary-btn').addEventListener('click', () => {
-      const form = document.getElementById('set-beneficiary-form');
+    // Add Manager
+    document.getElementById('add-manager-btn').addEventListener('click', () => {
+      const form = document.getElementById('add-manager-form');
       form.reset();
-      showModal('set-beneficiary-modal');
+      showModal('add-manager-modal');
     });
 
-    document.getElementById('set-beneficiary-form').addEventListener('submit', async (e) => {
+    document.getElementById('add-manager-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const newBeneficiary = e.target.elements['newBeneficiary'].value;
+      const managerAddress = e.target.elements['managerAddress'].value;
       try {
-        await contract.methods.setBeneficiary(newBeneficiary).send({ from: currentAccount });
-        closeModal('set-beneficiary-modal');
-        showNotification('success', 'Success', 'Beneficiary updated successfully');
+        await contract.methods.addManager(managerAddress).send({ from: currentAccount });
+        closeModal('add-manager-modal');
+        showNotification('success', 'Success', 'Manager added successfully');
       } catch (error) {
         showNotification('error', 'Error', formatError(error));
       }
     });
 
+    // Remove Manager
+    document.getElementById('remove-manager-btn').addEventListener('click', () => {
+      const form = document.getElementById('remove-manager-form');
+      form.reset();
+      showModal('remove-manager-modal');
+    });
+
+    document.getElementById('remove-manager-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const managerAddress = e.target.elements['managerAddress'].value;
+      try {
+        await contract.methods.removeManager(managerAddress).send({ from: currentAccount });
+        closeModal('remove-manager-modal');
+        showNotification('success', 'Success', 'Manager removed successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Add Depositor
     document.getElementById('add-depositor-btn').addEventListener('click', () => {
       const form = document.getElementById('add-depositor-form');
       form.reset();
@@ -2395,6 +2456,7 @@
       }
     });
 
+    // Remove Depositor
     document.getElementById('remove-depositor-btn').addEventListener('click', () => {
       const form = document.getElementById('remove-depositor-form');
       form.reset();
@@ -2413,6 +2475,7 @@
       }
     });
 
+    // Blacklist Address
     document.getElementById('blacklist-address-btn').addEventListener('click', () => {
       const form = document.getElementById('blacklist-address-form');
       form.reset();
@@ -2431,6 +2494,7 @@
       }
     });
 
+    // Unblacklist Address
     document.getElementById('unblacklist-address-btn').addEventListener('click', () => {
       const form = document.getElementById('unblacklist-address-form');
       form.reset();
