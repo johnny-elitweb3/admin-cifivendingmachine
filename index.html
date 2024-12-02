@@ -447,6 +447,8 @@ body {
       </div>
       <nav>
         <a href="#dashboard" class="nav-link" data-section="dashboard">Dashboard</a>
+        <a href="#vaults" class="nav-link" data-section="vaults">Vaults</a>
+        <a href="#admin" class="nav-link" data-section="admin">Admin Functions</a>
       </nav>
     </div>
 
@@ -463,12 +465,12 @@ body {
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>Total Products</h3>
-          <p id="total-products">Loading...</p>
+          <h3>Total Vaults</h3>
+          <p id="total-vaults">Loading...</p>
         </div>
         <div class="stat-card">
-          <h3>Total Revenue</h3>
-          <p id="total-revenue">Loading...</p>
+          <h3>Total Deposits</h3>
+          <p id="total-deposits">Loading...</p>
         </div>
         <div class="stat-card">
           <h3>Contract Balance</h3>
@@ -480,61 +482,60 @@ body {
         </div>
       </div>
 
-      <!-- Vault Management Section -->
-      <div class="vault-management-section">
+      <!-- Vaults Section -->
+      <div class="vaults-section">
         <div class="section-header">
-          <h2>Vault Management</h2>
+          <h2>Vaults</h2>
           <div class="header-actions">
-            <button class="btn btn-primary" id="initialize-vault-btn">
-              <i class="fas fa-plus"></i> Initialize Vault
-            </button>
             <button class="btn btn-primary" id="refresh-vaults">
               <i class="fas fa-sync"></i> Refresh
+            </button>
+            <button class="btn btn-primary" id="initialize-vault-btn">
+              <i class="fas fa-plus"></i> Initialize Vault
             </button>
           </div>
         </div>
 
-        <table class="vault-table">
+        <table class="vaults-table">
           <thead>
             <tr>
               <th>ID</th>
               <th>Product Token</th>
               <th>Payment Token</th>
               <th>Price</th>
-              <th>Supply</th>
+              <th>Total Product</th>
               <th>Total Profit</th>
+              <th>Unshared Profit</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="vault-list">
+          <tbody id="vaults-list">
             <!-- Vaults will be populated here -->
           </tbody>
         </table>
       </div>
 
-      <!-- Emergency Controls Section -->
-      <div class="emergency-controls-section">
-        <h2>Emergency Controls</h2>
-        <div class="emergency-controls">
-          <button class="btn btn-danger" id="toggle-pause">Loading Contract State...</button>
-        </div>
-        <div class="emergency-requests">
-          <h3>Emergency Withdrawal Requests</h3>
-          <div id="emergency-list" class="emergency-list"></div>
+      <!-- Admin Functions Section -->
+      <div class="admin-section" id="admin-section">
+        <h2>Admin Functions</h2>
+        <div class="admin-controls">
+          <button class="btn btn-primary" id="set-beneficiary-btn">Set Beneficiary</button>
+          <button class="btn btn-primary" id="add-depositor-btn">Add Depositor</button>
+          <button class="btn btn-primary" id="remove-depositor-btn">Remove Depositor</button>
+          <button class="btn btn-primary" id="blacklist-address-btn">Blacklist Address</button>
+          <button class="btn btn-primary" id="unblacklist-address-btn">Unblacklist Address</button>
+          <button class="btn btn-danger" id="toggle-contract-pause-btn">Loading Contract State...</button>
         </div>
       </div>
 
-      <!-- Whitelist Management Section -->
-      <div class="whitelist-management-section">
-        <h2>Whitelist Management</h2>
-        <div class="whitelist-controls">
-          <input type="text" id="whitelist-address" placeholder="Address to Whitelist">
-          <button class="btn btn-primary" id="add-whitelist-btn">Add to Whitelist</button>
-        </div>
-        <div class="whitelist-list-container">
-          <h3>Whitelisted Addresses</h3>
-          <div id="whitelist-list" class="whitelist-list"></div>
+      <!-- Analytics Section -->
+      <div class="analytics-section">
+        <h2>Analytics Dashboard</h2>
+        <div class="analytics-grid">
+          <div class="chart-container">
+            <canvas id="vaults-chart"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -546,8 +547,8 @@ body {
       <h2>Initialize New Vault</h2>
       <form id="initialize-vault-form">
         <div class="form-group">
-          <label>Vault ID</label>
-          <input type="number" name="vaultId" required>
+          <label>Vault ID (0 to 3)</label>
+          <input type="number" name="vaultId" min="0" max="3" required>
         </div>
         <div class="form-group">
           <label>Product Token Address</label>
@@ -575,30 +576,1355 @@ body {
     </div>
   </div>
 
-  <!-- Deposit Product Modal -->
-  <div id="deposit-product-modal" class="modal">
+  <!-- Update Price Modal -->
+  <div id="update-price-modal" class="modal">
     <div class="modal-content">
-      <h2>Deposit Product to Vault</h2>
-      <form id="deposit-product-form">
+      <h2>Update Vault Price</h2>
+      <form id="update-price-form">
         <input type="hidden" name="vaultId">
         <div class="form-group">
-          <label>Product Token Address</label>
-          <input type="text" name="productToken" required>
+          <label>New Price (in wei)</label>
+          <input type="number" name="newPrice" required>
         </div>
-        <div class="form-group">
-          <label>Amount to Deposit</label>
-          <input type="number" name="amount" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Deposit</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('deposit-product-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Price</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('update-price-modal')">Cancel</button>
       </form>
     </div>
   </div>
 
-  <!-- JavaScript Placeholder for ABI and Contract Interaction -->
+  <!-- Set Beneficiary Modal -->
+  <div id="set-beneficiary-modal" class="modal">
+    <div class="modal-content">
+      <h2>Set New Beneficiary</h2>
+      <form id="set-beneficiary-form">
+        <div class="form-group">
+          <label>New Beneficiary Address</label>
+          <input type="text" name="newBeneficiary" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Set Beneficiary</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('set-beneficiary-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Depositor Modal -->
+  <div id="add-depositor-modal" class="modal">
+    <div class="modal-content">
+      <h2>Add Depositor</h2>
+      <form id="add-depositor-form">
+        <div class="form-group">
+          <label>Depositor Address</label>
+          <input type="text" name="depositorAddress" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Depositor</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('add-depositor-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Remove Depositor Modal -->
+  <div id="remove-depositor-modal" class="modal">
+    <div class="modal-content">
+      <h2>Remove Depositor</h2>
+      <form id="remove-depositor-form">
+        <div class="form-group">
+          <label>Depositor Address</label>
+          <input type="text" name="depositorAddress" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Remove Depositor</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('remove-depositor-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Blacklist Address Modal -->
+  <div id="blacklist-address-modal" class="modal">
+    <div class="modal-content">
+      <h2>Blacklist Address</h2>
+      <form id="blacklist-address-form">
+        <div class="form-group">
+          <label>Address to Blacklist</label>
+          <input type="text" name="address" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Blacklist Address</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('blacklist-address-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Unblacklist Address Modal -->
+  <div id="unblacklist-address-modal" class="modal">
+    <div class="modal-content">
+      <h2>Unblacklist Address</h2>
+      <form id="unblacklist-address-form">
+        <div class="form-group">
+          <label>Address to Unblacklist</label>
+          <input type="text" name="address" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Unblacklist Address</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('unblacklist-address-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Include your existing scripts and any new scripts required -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    // Replace with your VendingVaultManager ABI
     const CONTRACT_ABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "initialOwner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_beneficiary",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "AccessControlBadConfirmation",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "neededRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "AccessControlUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "FailedCall",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "balance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "needed",
+				"type": "uint256"
+			}
+		],
+		"name": "InsufficientBalance",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "OwnableInvalidOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "SafeERC20FailedOperation",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "status",
+				"type": "bool"
+			}
+		],
+		"name": "AddressBlacklisted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newUnsharedProduct",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "AutomaticVaultRecalibration",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "oldBeneficiary",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newBeneficiary",
+				"type": "address"
+			}
+		],
+		"name": "BeneficiaryUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isAdded",
+				"type": "bool"
+			}
+		],
+		"name": "DepositorStatusChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "DirectProductReceived",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isRegisteredSender",
+				"type": "bool"
+			}
+		],
+		"name": "DirectTokenTransferReceived",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "depositor",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "EmergencyWithdraw",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "NativeTokenReceived",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Paused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "PriceUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "depositor",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "shares",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductDeposited",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "cost",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"name": "ProductSold",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "shareholder",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"name": "ProfitWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "previousAdminRole",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "newAdminRole",
+				"type": "bytes32"
+			}
+		],
+		"name": "RoleAdminChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			}
+		],
+		"name": "RoleRevoked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "Unpaused",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "UnregisteredTokenReturned",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"name": "UnsharedProfitWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "initialPrice",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "shareName",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "shareSymbol",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"name": "VaultInitialized",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newUnsharedProduct",
+				"type": "uint256"
+			}
+		],
+		"name": "VaultRecalibrated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isPaused",
+				"type": "bool"
+			}
+		],
+		"name": "VaultStateChanged",
+		"type": "event"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [],
+		"name": "DEFAULT_ADMIN_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "DEPOSITOR_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MANAGER_ROLE",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MAX_DEPOSIT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "MIN_DEPOSIT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "VAULT_COUNT",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "addDepositor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "beneficiary",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "blacklistAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "blacklistedAddresses",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyProduct",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "depositProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "emergencyWithdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "depositor",
+				"type": "address"
+			}
+		],
+		"name": "getDepositorInfo",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "depositBalance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shareBalance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "profitBalance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentProfitShare",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			}
+		],
+		"name": "getRoleAdmin",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "getTokenVaultId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "getVaultAnalytics",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalDepositors",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalValueLocked",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "profitPerShare",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unsharedValueLocked",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalUnsharedProfit",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "getVaultBalances",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "productBalance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "paymentBalance",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nativeBalance",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "getVaultBasicInfo",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isInitialized",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isPaused",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "getVaultFinancialInfo",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "totalProduct",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalProfit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unsharedProduct",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unsharedProfit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastPriceUpdate",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "getVaultTokens",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "shareToken",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "grantRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "hasRole",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "initialPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "shareName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "shareSymbol",
+				"type": "string"
+			}
+		],
+		"name": "initializeVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "isNativePaymentVault",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			}
+		],
+		"name": "isProductRegistered",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
 	{
 		"inputs": [
 			{
@@ -632,33 +1958,920 @@ body {
 		],
 		"stateMutability": "nonpayable",
 		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "pauseVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "paused",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "recalibrateVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "registeredProducts",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "removeDepositor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "callerConfirmation",
+				"type": "address"
+			}
+		],
+		"name": "renounceRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "role",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "revokeRole",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newBeneficiary",
+				"type": "address"
+			}
+		],
+		"name": "setBeneficiary",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes4",
+				"name": "interfaceId",
+				"type": "bytes4"
+			}
+		],
+		"name": "supportsInterface",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "tokenToVaultId",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "unblacklistAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "unpauseVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "vaults",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "contract IERC20",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalProduct",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalProfit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unsharedProfit",
+				"type": "uint256"
+			},
+			{
+				"internalType": "contract VaultShareToken",
+				"name": "shareToken",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isInitialized",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isPaused",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastPriceUpdate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isNativePayment",
+				"type": "bool"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalShares",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unsharedProduct",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawProfit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawUnsharedProfit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ];
-    let web3;
-    let contract;
-    let currentAccount;
+
+    // Replace with your contract address for each network
     const NETWORKS = {
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0xf1ce86eBC4945F028A76369A29E4ae1F069Fb41b',
-        symbol: 'XDC'
+        contractAddress: '0xf1ce86eBC4945F028A76369A29E4ae1F069Fb41b', // Replace with your contract address
+        symbol: 'XDC',
+        explorer: 'https://explorer.xinfin.network',
+        chainParams: {
+          chainId: '0x32',
+          chainName: 'XDC Mainnet',
+          nativeCurrency: { name: 'XDC', symbol: 'XDC', decimals: 18 },
+          rpcUrls: ['https://rpc.xinfin.network'],
+          blockExplorerUrls: ['https://explorer.xinfin.network']
+        }
       },
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '<YOUR_CONTRACT_ADDRESS>',
-        symbol: 'AVAX'
+        contractAddress: '0xf1ce86eBC4945F028A76369A29E4ae1F069Fb41b', // Replace with your contract address
+        symbol: 'AVAX',
+        explorer: 'https://snowtrace.io',
+        chainParams: {
+          chainId: '0xA86A',
+          chainName: 'Avalanche C-Chain',
+          nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+          rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
+          blockExplorerUrls: ['https://snowtrace.io']
+        }
       },
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '<YOUR_CONTRACT_ADDRESS>',
-        symbol: 'MATIC'
+        contractAddress: '0xf1ce86eBC4945F028A76369A29E4ae1F069Fb41b', // Replace with your contract address
+        symbol: 'POL',
+        explorer: 'https://polygonscan.com',
+        chainParams: {
+          chainId: '0x89',
+          chainName: 'Polygon Mainnet',
+          nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+          rpcUrls: ['https://polygon-rpc.com'],
+          blockExplorerUrls: ['https://polygonscan.com']
+        }
       }
     };
 
-    // Web3 Connection and Contract Methods Here
+    let web3;
+    let contract;
+    let currentAccount;
+    let currentChainId;
+    let vaults = [];
+
+    // Initialize Web3 and connect to the wallet
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          currentAccount = accounts[0];
+
+          web3 = new Web3(window.ethereum);
+
+          const chainIdHex = await web3.eth.getChainId();
+          await handleNetworkChange(web3.utils.toHex(chainIdHex));
+
+          window.ethereum.on('accountsChanged', handleAccountChange);
+          window.ethereum.on('chainChanged', handleNetworkChange);
+
+          document.getElementById('connected-address').textContent = 
+            `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+
+          setupContractEvents();
+
+          showNotification('success', 'Connected', 'Successfully connected to wallet');
+        } catch (error) {
+          console.error('Error connecting to wallet:', error);
+          showNotification('error', 'Connection Failed', formatError(error));
+        }
+      } else {
+        showNotification('error', 'Web3 Not Found', 'Please install MetaMask');
+      }
+    }
+
+    document.getElementById('connect-wallet-btn').addEventListener('click', connectWallet);
+
+    async function handleAccountChange(accounts) {
+      if (accounts.length === 0) {
+        currentAccount = null;
+        document.getElementById('connected-address').textContent = 'Not Connected';
+        showNotification('warning', 'Disconnected', 'Please connect your wallet');
+      } else {
+        currentAccount = accounts[0];
+        document.getElementById('connected-address').textContent = 
+          `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+        await loadDashboardData();
+      }
+    }
+
+    async function handleNetworkChange(chainIdHex) {
+      const chainId = parseInt(chainIdHex, 16);
+      currentChainId = chainId;
+      const networkConfig = NETWORKS[currentChainId];
+
+      if (!networkConfig) {
+        showNotification('error', 'Network Error', 'Unsupported network. Please switch to a supported network.');
+        document.getElementById('current-network').textContent = `Network: Unsupported (${chainId})`;
+        return;
+      }
+
+      document.getElementById('current-network').textContent = `Network: ${networkConfig.name}`;
+      contract = new web3.eth.Contract(CONTRACT_ABI, networkConfig.contractAddress);
+
+      await loadDashboardData();
+    }
+
+    async function switchNetwork(targetChainId) {
+      try {
+        const networkConfig = NETWORKS[targetChainId];
+        if (!networkConfig) throw new Error('Unsupported network');
+
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: networkConfig.chainParams.chainId }]
+        });
+      } catch (error) {
+        if (error.code === 4902) {
+          try {
+            const networkConfig = NETWORKS[targetChainId];
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [networkConfig.chainParams]
+            });
+          } catch (addError) {
+            console.error('Error adding network:', addError);
+            showNotification('error', 'Network Error', 'Failed to add network to MetaMask');
+          }
+        } else {
+          console.error('Error switching network:', error);
+          showNotification('error', 'Network Error', 'Failed to switch network');
+        }
+      }
+    }
+
+    document.getElementById('network-select').addEventListener('change', async (e) => {
+      const targetChainId = parseInt(e.target.value);
+      await switchNetwork(targetChainId);
+    });
+
+    function setupContractEvents() {
+      if (!contract) return;
+
+      const events = [
+        'VaultInitialized',
+        'ProductDeposited',
+        'ProductSold',
+        'ProfitWithdrawn',
+        'UnsharedProfitWithdrawn',
+        'PriceUpdated',
+        'VaultStateChanged',
+        'BeneficiaryUpdated',
+        'EmergencyWithdraw',
+        'AddressBlacklisted',
+        'DepositorStatusChanged',
+        'Paused',
+        'Unpaused'
+      ];
+
+      events.forEach(eventName => {
+        contract.events[eventName]({})
+          .on('data', async (event) => {
+            console.log(`${eventName} event:`, event);
+            showNotification('success', eventName, 'Event detected, refreshing data...');
+            await loadDashboardData();
+          })
+          .on('error', error => {
+            console.error(`Error in ${eventName} event:`, error);
+          });
+      });
+    }
+
+    async function loadDashboardData() {
+      try {
+        const vaultCount = 4; // As per your contract's VAULT_COUNT
+        let totalDeposits = 0;
+
+        document.getElementById('total-vaults').textContent = vaultCount;
+
+        vaults = [];
+
+        for (let vaultId = 0; vaultId < vaultCount; vaultId++) {
+          const [basicInfo, financialInfo] = await Promise.all([
+            contract.methods.getVaultBasicInfo(vaultId).call(),
+            contract.methods.getVaultFinancialInfo(vaultId).call()
+          ]);
+
+          if (basicInfo.isInitialized) {
+            vaults.push({
+              id: vaultId,
+              productToken: basicInfo.productToken,
+              paymentToken: basicInfo.paymentToken,
+              price: basicInfo.price,
+              isInitialized: basicInfo.isInitialized,
+              isPaused: basicInfo.isPaused,
+              isNativePayment: basicInfo.isNativePayment,
+              totalProduct: financialInfo.totalProduct,
+              totalProfit: financialInfo.totalProfit,
+              unsharedProfit: financialInfo.unsharedProfit,
+              lastPriceUpdate: financialInfo.lastPriceUpdate,
+              totalShares: financialInfo.totalShares,
+              unsharedProduct: financialInfo.unsharedProduct
+            });
+
+            totalDeposits += parseInt(financialInfo.totalProduct);
+          }
+        }
+
+        document.getElementById('total-deposits').textContent = totalDeposits;
+
+        const isPaused = await contract.methods.paused().call();
+        document.getElementById('contract-status').textContent = isPaused ? 'Paused' : 'Active';
+        document.getElementById('toggle-contract-pause-btn').textContent = isPaused ? 'Unpause Contract' : 'Pause Contract';
+
+        const balance = await web3.eth.getBalance(contract.options.address);
+        document.getElementById('contract-balance').textContent = 
+          `${web3.utils.fromWei(balance)} ${NETWORKS[currentChainId].symbol}`;
+
+        renderVaultsTable();
+
+        updateAnalytics();
+      } catch (error) {
+        showNotification('error', 'Loading Error', formatError(error));
+      }
+    }
+
+    function renderVaultsTable() {
+      const vaultsList = document.getElementById('vaults-list');
+      vaultsList.innerHTML = '';
+
+      vaults.forEach(vault => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${vault.id}</td>
+          <td><a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></td>
+          <td>${vault.isNativePayment ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</td>
+          <td>${web3.utils.fromWei(vault.price)} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</td>
+          <td>${vault.totalProduct}</td>
+          <td>${web3.utils.fromWei(vault.totalProfit)}</td>
+          <td>${web3.utils.fromWei(vault.unsharedProfit)}</td>
+          <td>
+            <span class="status-badge ${vault.isPaused ? 'inactive' : 'active'}">
+              ${vault.isPaused ? 'Paused' : 'Active'}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-primary btn-sm" onclick="showUpdatePriceModal(${vault.id})">
+                <i class="fas fa-edit"></i> Update Price
+              </button>
+              <button class="btn ${vault.isPaused ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleVaultState(${vault.id})">
+                ${vault.isPaused ? 'Unpause' : 'Pause'}
+              </button>
+            </div>
+          </td>
+        `;
+        vaultsList.appendChild(row);
+      });
+    }
+
+    // Function to show Update Price Modal
+    function showUpdatePriceModal(vaultId) {
+      const form = document.getElementById('update-price-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+      showModal('update-price-modal');
+    }
+
+    // Function to toggle vault state
+    async function toggleVaultState(vaultId) {
+      try {
+        const vault = vaults.find(v => v.id === vaultId);
+        if (vault.isPaused) {
+          await contract.methods.unpauseVault(vaultId).send({ from: currentAccount });
+        } else {
+          await contract.methods.pauseVault(vaultId).send({ from: currentAccount });
+        }
+        showNotification('success', 'Success', `Vault ${vault.isPaused ? 'unpaused' : 'paused'} successfully`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    // Event listener for Update Price form
+    document.getElementById('update-price-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const newPrice = formData.get('newPrice');
+      try {
+        await contract.methods.updatePrice(vaultId, newPrice).send({ from: currentAccount });
+        closeModal('update-price-modal');
+        showNotification('success', 'Success', 'Vault price updated successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Initialize Vault form
+    document.getElementById('initialize-vault-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const productToken = formData.get('productToken');
+      const paymentToken = formData.get('paymentToken') === '0x0' ? '0x0000000000000000000000000000000000000000' : formData.get('paymentToken');
+      const initialPrice = formData.get('initialPrice');
+      const shareName = formData.get('shareName');
+      const shareSymbol = formData.get('shareSymbol');
+
+      try {
+        await contract.methods.initializeVault(
+          vaultId,
+          productToken,
+          paymentToken,
+          initialPrice,
+          shareName,
+          shareSymbol
+        ).send({ from: currentAccount });
+
+        closeModal('initialize-vault-modal');
+        showNotification('success', 'Success', 'Vault initialized successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Set Beneficiary form
+    document.getElementById('set-beneficiary-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newBeneficiary = e.target.elements['newBeneficiary'].value;
+      try {
+        await contract.methods.setBeneficiary(newBeneficiary).send({ from: currentAccount });
+        closeModal('set-beneficiary-modal');
+        showNotification('success', 'Success', 'Beneficiary updated successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Add Depositor form
+    document.getElementById('add-depositor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const depositorAddress = e.target.elements['depositorAddress'].value;
+      try {
+        await contract.methods.addDepositor(depositorAddress).send({ from: currentAccount });
+        closeModal('add-depositor-modal');
+        showNotification('success', 'Success', 'Depositor added successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Remove Depositor form
+    document.getElementById('remove-depositor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const depositorAddress = e.target.elements['depositorAddress'].value;
+      try {
+        await contract.methods.removeDepositor(depositorAddress).send({ from: currentAccount });
+        closeModal('remove-depositor-modal');
+        showNotification('success', 'Success', 'Depositor removed successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Blacklist Address form
+    document.getElementById('blacklist-address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const address = e.target.elements['address'].value;
+      try {
+        await contract.methods.blacklistAddress(address).send({ from: currentAccount });
+        closeModal('blacklist-address-modal');
+        showNotification('success', 'Success', 'Address blacklisted successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Event listener for Unblacklist Address form
+    document.getElementById('unblacklist-address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const address = e.target.elements['address'].value;
+      try {
+        await contract.methods.unblacklistAddress(address).send({ from: currentAccount });
+        closeModal('unblacklist-address-modal');
+        showNotification('success', 'Success', 'Address unblacklisted successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Toggle Contract Pause
+    async function toggleContractPause() {
+      try {
+        const isPaused = await contract.methods.paused().call();
+        if (isPaused) {
+          await contract.methods.unpause().send({ from: currentAccount });
+        } else {
+          await contract.methods.pause().send({ from: currentAccount });
+        }
+        showNotification('success', 'Success', `Contract ${isPaused ? 'unpaused' : 'paused'} successfully`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    document.getElementById('toggle-contract-pause-btn').addEventListener('click', toggleContractPause);
+
+    // Helper functions
+    function showModal(modalId) {
+      const modal = document.getElementById(modalId);
+      modal.classList.add('show');
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      modal.classList.remove('show');
+    }
+
+    function showNotification(type, title, message) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type} show`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+      `;
+
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
+    }
+
+    function formatError(error) {
+      if (typeof error === 'string') return error;
+      if (error.message) return error.message;
+      return JSON.stringify(error);
+    }
+
+    function updateAnalytics() {
+      if (!vaults.length) return;
+
+      const vaultsChartCtx = document.getElementById('vaults-chart').getContext('2d');
+
+      if (window.vaultsChart) window.vaultsChart.destroy();
+
+      const chartData = vaults.map(v => ({
+        id: v.id,
+        totalProfit: parseFloat(web3.utils.fromWei(v.totalProfit)),
+        totalProduct: parseInt(v.totalProduct)
+      }));
+
+      window.vaultsChart = new Chart(vaultsChartCtx, {
+        type: 'bar',
+        data: {
+          labels: chartData.map(d => `Vault ${d.id}`),
+          datasets: [{
+            label: 'Total Profit',
+            data: chartData.map(d => d.totalProfit),
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }, {
+            label: 'Total Product',
+            data: chartData.map(d => d.totalProduct),
+            backgroundColor: 'rgba(75, 192, 192, 0.7)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Vaults Analytics'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Setup UI elements
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof window.ethereum !== 'undefined') {
+        web3 = new Web3(window.ethereum);
+        web3.eth.getAccounts().then(accounts => {
+          if (accounts.length > 0) {
+            currentAccount = accounts[0];
+            document.getElementById('connected-address').textContent = 
+              `${currentAccount.substr(0,6)}...${currentAccount.substr(-4)}`;
+            web3.eth.getChainId().then(chainId => {
+              handleNetworkChange(web3.utils.toHex(chainId));
+            });
+          }
+        });
+
+        window.ethereum.on('accountsChanged', handleAccountChange);
+        window.ethereum.on('chainChanged', handleNetworkChange);
+      } else {
+        console.warn('MetaMask is not installed');
+      }
+
+      // Add event listeners for modal buttons
+      document.getElementById('initialize-vault-btn').addEventListener('click', () => {
+        showModal('initialize-vault-modal');
+      });
+
+      document.getElementById('set-beneficiary-btn').addEventListener('click', () => {
+        showModal('set-beneficiary-modal');
+      });
+
+      document.getElementById('add-depositor-btn').addEventListener('click', () => {
+        showModal('add-depositor-modal');
+      });
+
+      document.getElementById('remove-depositor-btn').addEventListener('click', () => {
+        showModal('remove-depositor-modal');
+      });
+
+      document.getElementById('blacklist-address-btn').addEventListener('click', () => {
+        showModal('blacklist-address-modal');
+      });
+
+      document.getElementById('unblacklist-address-btn').addEventListener('click', () => {
+        showModal('unblacklist-address-modal');
+      });
+
+      document.getElementById('refresh-vaults').addEventListener('click', loadDashboardData);
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        closeModal(e.target.id);
+      }
+    });
   </script>
 </body>
 </html>
