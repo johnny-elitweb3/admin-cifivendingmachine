@@ -623,6 +623,7 @@
   <!-- Notification Container -->
   <div id="notification-container"></div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
@@ -1853,7 +1854,7 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0x91B88476c0982f8982A3668F4E95BF91233AA493', // Replace with your contract address
+        contractAddress: '0x3acea70fFCb91b4ffDF433AD0e35fC51a08e1cEc', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
         chainParams: {
@@ -2000,9 +2001,7 @@
         'Paused',
         'Unpaused',
         'ProductNameUpdated',
-        'UnsharedProductWithdrawn',
-        'Recalibrated', // New event
-        'ProductWithdrawal' // New event
+        'UnsharedProductWithdrawn'
       ];
 
       events.forEach(eventName => {
@@ -2027,12 +2026,6 @@
 
         vaults = [];
 
-        // Fetch MIN_DEPOSIT and MAX_DEPOSIT
-        const [minDeposit, maxDeposit] = await Promise.all([
-          contract.methods.MIN_DEPOSIT().call(),
-          contract.methods.MAX_DEPOSIT().call()
-        ]);
-
         for (let vaultId = 0; vaultId < vaultCount; vaultId++) {
           const [basicInfo, financialInfo] = await Promise.all([
             contract.methods.getVaultBasicInfo(vaultId).call(),
@@ -2052,9 +2045,7 @@
             totalProfit: financialInfo.totalProfit,
             totalShares: financialInfo.totalShares,
             unsharedProduct: financialInfo.unsharedProduct,
-            unsharedProfit: financialInfo.unsharedProfit,
-            minDeposit: minDeposit,
-            maxDeposit: maxDeposit
+            unsharedProfit: financialInfo.unsharedProfit
           });
 
           totalDeposits += parseInt(financialInfo.totalProduct);
@@ -2223,12 +2214,6 @@
       const form = document.getElementById('deposit-product-form');
       form.reset();
       form.elements['vaultId'].value = vaultId;
-
-      // Display MIN_DEPOSIT and MAX_DEPOSIT in the modal
-      const vault = vaults.find(v => v.id == vaultId);
-      document.getElementById('min-deposit').textContent = vault.minDeposit;
-      document.getElementById('max-deposit').textContent = vault.maxDeposit;
-
       showModal('deposit-product-modal');
     }
 
@@ -2241,12 +2226,6 @@
       try {
         const vault = vaults.find(v => v.id == vaultId);
         const productTokenAddress = vault.productToken;
-
-        // Check if amount is within MIN_DEPOSIT and MAX_DEPOSIT
-        if (parseInt(amount) < parseInt(vault.minDeposit) || parseInt(amount) > parseInt(vault.maxDeposit)) {
-          showNotification('error', 'Error', `Amount must be between ${vault.minDeposit} and ${vault.maxDeposit}`);
-          return;
-        }
 
         const productTokenContract = new web3.eth.Contract([
           // Minimal ERC20 ABI for approval
