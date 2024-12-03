@@ -453,6 +453,10 @@
           <input type="text" name="productToken" required>
         </div>
         <div class="form-group">
+          <label>Is wCIFI Token?</label>
+          <input type="checkbox" name="isWcifiToken">
+        </div>
+        <div class="form-group">
           <label>Payment Token Address</label>
           <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
         </div>
@@ -655,24 +659,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "buyProduct",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "initialOwner",
 				"type": "address"
@@ -685,27 +671,6 @@
 		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "FailedCall",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "balance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "needed",
-				"type": "uint256"
-			}
-		],
-		"name": "InsufficientBalance",
-		"type": "error"
 	},
 	{
 		"inputs": [
@@ -727,17 +692,6 @@
 			}
 		],
 		"name": "OwnableUnauthorizedAccount",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			}
-		],
-		"name": "SafeERC20FailedOperation",
 		"type": "error"
 	},
 	{
@@ -777,6 +731,24 @@
 		"name": "blacklistAddress",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "buyProduct",
+		"outputs": [],
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
@@ -822,43 +794,6 @@
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "isUnsharedProduct",
-				"type": "bool"
-			}
-		],
-		"name": "DirectTokenTransferReceived",
-		"type": "event"
 	},
 	{
 		"inputs": [
@@ -907,9 +842,14 @@
 	{
 		"inputs": [
 			{
-				"internalType": "contract IERC20",
+				"internalType": "address",
 				"name": "productToken",
 				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isWcifiToken",
+				"type": "bool"
 			},
 			{
 				"internalType": "address",
@@ -943,40 +883,6 @@
 				"internalType": "uint256",
 				"name": "vaultId",
 				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"name": "onERC20Received",
-		"outputs": [
-			{
-				"internalType": "bytes4",
-				"name": "",
-				"type": "bytes4"
 			}
 		],
 		"stateMutability": "nonpayable",
@@ -1033,25 +939,6 @@
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "PriceUpdated",
-		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -1186,24 +1073,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "contract IERC20",
-				"name": "token",
-				"type": "address"
-			}
-		],
-		"name": "recalibrateVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "account",
 				"type": "address"
@@ -1261,6 +1130,13 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1274,29 +1150,17 @@
 		"type": "event"
 	},
 	{
-		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "token",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "vaultId",
 				"type": "uint256"
 			}
 		],
-		"name": "UnregisteredTokenReturned",
-		"type": "event"
+		"name": "unpauseVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1355,6 +1219,42 @@
 		"type": "event"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "newProductName",
+				"type": "string"
+			}
+		],
+		"name": "updateProductName",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1368,6 +1268,12 @@
 				"internalType": "address",
 				"name": "productToken",
 				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isWcifiToken",
+				"type": "bool"
 			},
 			{
 				"indexed": false,
@@ -1412,44 +1318,6 @@
 				"internalType": "uint256",
 				"name": "vaultId",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newUnsharedProduct",
-				"type": "uint256"
-			}
-		],
-		"name": "VaultRecalibrated",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "bool",
-				"name": "isPaused",
-				"type": "bool"
-			}
-		],
-		"name": "VaultStateChanged",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
 			}
 		],
 		"name": "VaultUnpaused",
@@ -1458,62 +1326,6 @@
 	{
 		"stateMutability": "payable",
 		"type": "fallback"
-	},
-	{
-		"inputs": [],
-		"name": "unpause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "unpauseVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "newPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "updatePrice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "newProductName",
-				"type": "string"
-			}
-		],
-		"name": "updateProductName",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"inputs": [
@@ -1624,11 +1436,6 @@
 		],
 		"name": "getDepositorInfo",
 		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "depositBalance",
-				"type": "uint256"
-			},
 			{
 				"internalType": "uint256",
 				"name": "shareBalance",
@@ -1746,6 +1553,11 @@
 				"type": "address"
 			},
 			{
+				"internalType": "bool",
+				"name": "isWcifiToken",
+				"type": "bool"
+			},
+			{
 				"internalType": "address",
 				"name": "paymentToken",
 				"type": "address"
@@ -1761,9 +1573,9 @@
 				"type": "string"
 			},
 			{
-				"internalType": "bool",
-				"name": "isInitialized",
-				"type": "bool"
+				"internalType": "address",
+				"name": "shareToken",
+				"type": "address"
 			},
 			{
 				"internalType": "bool",
@@ -1808,11 +1620,6 @@
 				"internalType": "uint256",
 				"name": "unsharedProfit",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lastPriceUpdate",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1821,27 +1628,55 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
 			}
 		],
-		"name": "getVaultTokens",
+		"name": "isBlacklisted",
 		"outputs": [
 			{
-				"internalType": "address",
-				"name": "productToken",
-				"type": "address"
-			},
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
 				"internalType": "address",
-				"name": "paymentToken",
+				"name": "account",
 				"type": "address"
-			},
+			}
+		],
+		"name": "isDepositor",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
 				"internalType": "address",
-				"name": "shareToken",
+				"name": "account",
 				"type": "address"
+			}
+		],
+		"name": "isManager",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -1921,7 +1756,7 @@
 	{
 		"inputs": [
 			{
-				"internalType": "contract IERC20",
+				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
@@ -1951,14 +1786,13 @@
 		"type": "function"
 	}
 ];
-    // (For brevity, insert the entire ABI provided in your smart contract)
 
     // Replace with your contract address for each network
     const NETWORKS = {
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0xa6eeb5C81Efc408FCE8C7D022fbDe92c673d7dAD', // Replace with your contract address
+        contractAddress: '0x91B88476c0982f8982A3668F4E95BF91233AA493', // Replace with your contract address
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
         chainParams: {
@@ -1972,7 +1806,7 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0xa6eeb5C81Efc408FCE8C7D022fbDe92c673d7dAD', // Replace with your contract address
+        contractAddress: '0x91B88476c0982f8982A3668F4E95BF91233AA493', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
         chainParams: {
@@ -2110,10 +1944,8 @@
         'ProductSold',
         'ProfitWithdrawn',
         'UnsharedProfitWithdrawn',
-        'PriceUpdated',
         'VaultPaused',
         'VaultUnpaused',
-        'VaultRecalibrated',
         'AddressBlacklisted',
         'AddressUnblacklisted',
         'DepositorAdded',
@@ -2152,25 +1984,23 @@
             contract.methods.getVaultFinancialInfo(vaultId).call()
           ]);
 
-          if (basicInfo.isInitialized) {
-            vaults.push({
-              id: vaultId,
-              productToken: basicInfo.productToken,
-              paymentToken: basicInfo.paymentToken,
-              price: basicInfo.price,
-              productName: basicInfo.productName,
-              isInitialized: basicInfo.isInitialized,
-              isPaused: basicInfo.isPaused,
-              totalProduct: financialInfo.totalProduct,
-              totalProfit: financialInfo.totalProfit,
-              unsharedProfit: financialInfo.unsharedProfit,
-              lastPriceUpdate: financialInfo.lastPriceUpdate,
-              totalShares: financialInfo.totalShares,
-              unsharedProduct: financialInfo.unsharedProduct
-            });
+          vaults.push({
+            id: vaultId,
+            productToken: basicInfo.productToken,
+            isWcifiToken: basicInfo.isWcifiToken,
+            paymentToken: basicInfo.paymentToken,
+            price: basicInfo.price,
+            productName: basicInfo.productName,
+            shareToken: basicInfo.shareToken,
+            isPaused: basicInfo.isPaused,
+            totalProduct: financialInfo.totalProduct,
+            totalProfit: financialInfo.totalProfit,
+            totalShares: financialInfo.totalShares,
+            unsharedProduct: financialInfo.unsharedProduct,
+            unsharedProfit: financialInfo.unsharedProfit
+          });
 
-            totalDeposits += parseInt(financialInfo.totalProduct);
-          }
+          totalDeposits += parseInt(financialInfo.totalProduct);
         }
 
         document.getElementById('total-deposits').textContent = totalDeposits;
@@ -2233,9 +2063,6 @@
             <button class="btn ${vault.isPaused ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleVaultState(${vault.id})">
               ${vault.isPaused ? '<i class="fas fa-play"></i> Unpause' : '<i class="fas fa-pause"></i> Pause'}
             </button>
-            <button class="btn btn-info btn-sm" onclick="recalibrateVault(${vault.id})">
-              <i class="fas fa-sync-alt"></i> Recalibrate
-            </button>
             <button class="btn btn-danger btn-sm" onclick="withdrawUnsharedProfit(${vault.id})">
               <i class="fas fa-hand-holding-usd"></i> Withdraw Unshared Profit
             </button>
@@ -2261,6 +2088,7 @@
       e.preventDefault();
       const formData = new FormData(e.target);
       const productToken = formData.get('productToken');
+      const isWcifiToken = formData.get('isWcifiToken') ? true : false;
       const paymentToken = formData.get('paymentToken');
       const initialPrice = formData.get('initialPrice');
       const productName = formData.get('productName');
@@ -2270,6 +2098,7 @@
       try {
         await contract.methods.initializeVault(
           productToken,
+          isWcifiToken,
           paymentToken,
           initialPrice,
           productName,
@@ -2366,19 +2195,6 @@
         showNotification('error', 'Error', formatError(error));
       }
     });
-
-    // Function to recalibrate vault
-    async function recalibrateVault(vaultId) {
-      try {
-        const vault = vaults.find(v => v.id === vaultId);
-        const tokenAddress = vault.productToken;
-        await contract.methods.recalibrateVault(vaultId, tokenAddress).send({ from: currentAccount });
-        showNotification('success', 'Success', `Vault #${vaultId} recalibrated successfully`);
-        await loadDashboardData();
-      } catch (error) {
-        showNotification('error', 'Error', formatError(error));
-      }
-    }
 
     // Function to withdraw unshared profit
     async function withdrawUnsharedProfit(vaultId) {
