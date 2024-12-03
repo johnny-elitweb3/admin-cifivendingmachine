@@ -623,7 +623,6 @@
   <!-- Notification Container -->
   <div id="notification-container"></div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
@@ -653,6 +652,55 @@
 		],
 		"name": "addManager",
 		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isWcifiToken",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "initialPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "shareName",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "shareSymbol",
+				"type": "string"
+			}
+		],
+		"name": "initializeVault",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -692,6 +740,17 @@
 			}
 		],
 		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "token",
+				"type": "address"
+			}
+		],
+		"name": "SafeERC20FailedOperation",
 		"type": "error"
 	},
 	{
@@ -792,99 +851,6 @@
 		],
 		"name": "depositProduct",
 		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "emergencyWithdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "depositor",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "productToken",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "EmergencyWithdrawal",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "productToken",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "isWcifiToken",
-				"type": "bool"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "initialPrice",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "productName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "shareName",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "shareSymbol",
-				"type": "string"
-			}
-		],
-		"name": "initializeVault",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -1056,6 +1022,37 @@
 			},
 			{
 				"indexed": false,
+				"internalType": "address",
+				"name": "productToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductWithdrawal",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "depositor",
+				"type": "address"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
@@ -1068,6 +1065,38 @@
 			}
 		],
 		"name": "ProfitWithdrawn",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "recalibrate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "unaccountedTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "Recalibrated",
 		"type": "event"
 	},
 	{
@@ -1130,13 +1159,6 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "unpause",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -1148,19 +1170,6 @@
 		],
 		"name": "Unpaused",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "unpauseVault",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1217,42 +1226,6 @@
 		],
 		"name": "UnsharedProfitWithdrawn",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "newPrice",
-				"type": "uint256"
-			}
-		],
-		"name": "updatePrice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "newProductName",
-				"type": "string"
-			}
-		],
-		"name": "updateProductName",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -1326,6 +1299,80 @@
 	{
 		"stateMutability": "payable",
 		"type": "fallback"
+	},
+	{
+		"inputs": [],
+		"name": "unpause",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			}
+		],
+		"name": "unpauseVault",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "newPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePrice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "newProductName",
+				"type": "string"
+			}
+		],
+		"name": "updateProductName",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "vaultId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "shareAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "withdrawProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -1792,7 +1839,7 @@
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0x91B88476c0982f8982A3668F4E95BF91233AA493', // Replace with your contract address
+        contractAddress: '0x3acea70fFCb91b4ffDF433AD0e35fC51a08e1cEc', // Replace with your contract address
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
         chainParams: {
@@ -1953,7 +2000,9 @@
         'Paused',
         'Unpaused',
         'ProductNameUpdated',
-        'UnsharedProductWithdrawn'
+        'UnsharedProductWithdrawn',
+        'Recalibrated', // New event
+        'ProductWithdrawal' // New event
       ];
 
       events.forEach(eventName => {
@@ -1978,6 +2027,12 @@
 
         vaults = [];
 
+        // Fetch MIN_DEPOSIT and MAX_DEPOSIT
+        const [minDeposit, maxDeposit] = await Promise.all([
+          contract.methods.MIN_DEPOSIT().call(),
+          contract.methods.MAX_DEPOSIT().call()
+        ]);
+
         for (let vaultId = 0; vaultId < vaultCount; vaultId++) {
           const [basicInfo, financialInfo] = await Promise.all([
             contract.methods.getVaultBasicInfo(vaultId).call(),
@@ -1997,7 +2052,9 @@
             totalProfit: financialInfo.totalProfit,
             totalShares: financialInfo.totalShares,
             unsharedProduct: financialInfo.unsharedProduct,
-            unsharedProfit: financialInfo.unsharedProfit
+            unsharedProfit: financialInfo.unsharedProfit,
+            minDeposit: minDeposit,
+            maxDeposit: maxDeposit
           });
 
           totalDeposits += parseInt(financialInfo.totalProduct);
@@ -2166,6 +2223,12 @@
       const form = document.getElementById('deposit-product-form');
       form.reset();
       form.elements['vaultId'].value = vaultId;
+
+      // Display MIN_DEPOSIT and MAX_DEPOSIT in the modal
+      const vault = vaults.find(v => v.id == vaultId);
+      document.getElementById('min-deposit').textContent = vault.minDeposit;
+      document.getElementById('max-deposit').textContent = vault.maxDeposit;
+
       showModal('deposit-product-modal');
     }
 
@@ -2178,6 +2241,12 @@
       try {
         const vault = vaults.find(v => v.id == vaultId);
         const productTokenAddress = vault.productToken;
+
+        // Check if amount is within MIN_DEPOSIT and MAX_DEPOSIT
+        if (parseInt(amount) < parseInt(vault.minDeposit) || parseInt(amount) > parseInt(vault.maxDeposit)) {
+          showNotification('error', 'Error', `Amount must be between ${vault.minDeposit} and ${vault.maxDeposit}`);
+          return;
+        }
 
         const productTokenContract = new web3.eth.Contract([
           // Minimal ERC20 ABI for approval
