@@ -2373,6 +2373,10 @@
     // Function to withdraw unshared product
     async function withdrawUnsharedProduct(vaultId) {
       try {
+        if (currentAccount.toLowerCase() !== contract.options.address.toLowerCase() && !isManager) {
+          showNotification('error', 'Error', 'Only the owner can withdraw unshared product');
+          return;
+        }
         await contract.methods.withdrawUnsharedProduct(vaultId).send({ from: currentAccount });
         showNotification('success', 'Success', `Unshared product withdrawn from Vault #${vaultId}`);
         await loadDashboardData();
