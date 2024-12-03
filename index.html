@@ -457,7 +457,7 @@
           <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
         </div>
         <div class="form-group">
-          <label>Initial Price</label>
+          <label>Initial Price (in wei)</label>
           <input type="number" name="initialPrice" required>
         </div>
         <div class="form-group">
@@ -492,7 +492,7 @@
       <form id="update-price-form">
         <input type="hidden" name="vaultId">
         <div class="form-group">
-          <label>New Price</label>
+          <label>New Price (in wei)</label>
           <input type="number" name="newPrice" required>
         </div>
         <button type="submit" class="btn btn-primary">Update Price</button>
@@ -529,23 +529,6 @@
         </div>
         <button type="submit" class="btn btn-primary">Deposit</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('deposit-product-modal')">Cancel</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Buy Product Modal -->
-  <div id="buy-product-modal" class="modal">
-    <div class="modal-content">
-      <h2>Buy Product</h2>
-      <form id="buy-product-form">
-        <input type="hidden" name="vaultId">
-        <div class="form-group">
-          <label>Amount to Purchase</label>
-          <input type="number" name="amount" required>
-        </div>
-        <p id="buy-product-price"></p>
-        <button type="submit" class="btn btn-primary">Buy</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal('buy-product-modal')">Cancel</button>
       </form>
     </div>
   </div>
@@ -648,6 +631,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
   <script>
+    // Replace with your VendingVaultManager ABI
     const CONTRACT_ABI = [
 	{
 		"inputs": [
@@ -2004,14 +1988,14 @@
 	}
 ];
 
+    // Replace with your contract address for each network
     const NETWORKS = {
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0xd5208d783A9E2d592eB56a70B77599c7398572EC',
+        contractAddress: '0xd5208d783A9E2d592eB56a70B77599c7398572EC', // Replace with your contract address
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
-        decimals: 18,
         chainParams: {
           chainId: '0x32',
           chainName: 'XDC Mainnet',
@@ -2023,10 +2007,9 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c',
+        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
-        decimals: 18,
         chainParams: {
           chainId: '0xA86A',
           chainName: 'Avalanche C-Chain',
@@ -2038,10 +2021,9 @@
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c',
+        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
         symbol: 'POL',
         explorer: 'https://polygonscan.com',
-        decimals: 18,
         chainParams: {
           chainId: '0x89',
           chainName: 'Polygon Mainnet',
@@ -2059,6 +2041,7 @@
     let vaults = [];
     let beneficiaryAddress;
 
+    // Initialize Web3 and connect to the wallet
     async function connectWallet() {
       if (typeof window.ethereum !== 'undefined') {
         try {
@@ -2173,8 +2156,7 @@
         'Paused',
         'Unpaused',
         'ProductNameUpdated',
-        'UnsharedProductWithdrawn',
-        'DirectTokenTransferReceived'
+        'UnsharedProductWithdrawn'
       ];
 
       events.forEach(eventName => {
@@ -2227,17 +2209,17 @@
           }
         }
 
-        document.getElementById('total-deposits').textContent = totalDeposits.toLocaleString();
+        document.getElementById('total-deposits').textContent = totalDeposits;
 
         const isPaused = await contract.methods.paused().call();
         document.getElementById('contract-status').textContent = isPaused ? 'Paused' : 'Active';
         document.getElementById('toggle-contract-pause-btn').textContent = isPaused ? 'Unpause Contract' : 'Pause Contract';
 
         const balance = await web3.eth.getBalance(contract.options.address);
-        const formattedBalance = web3.utils.fromWei(balance, 'ether');
         document.getElementById('contract-balance').textContent =
-          `${parseFloat(formattedBalance).toLocaleString()} ${NETWORKS[currentChainId].symbol}`;
+          `${web3.utils.fromWei(balance)} ${NETWORKS[currentChainId].symbol}`;
 
+        // Get Beneficiary Address
         beneficiaryAddress = await contract.methods.beneficiary().call();
 
         renderVaults();
@@ -2256,11 +2238,6 @@
         const vaultCard = document.createElement('div');
         vaultCard.className = 'vault-card';
 
-        const availableSupply = parseInt(vault.totalProduct) + parseInt(vault.unsharedProduct);
-        const pricePerUnit = web3.utils.fromWei(vault.price, 'ether');
-        const totalProfit = web3.utils.fromWei(vault.totalProfit, 'ether');
-        const unsharedProfit = web3.utils.fromWei(vault.unsharedProfit, 'ether');
-
         vaultCard.innerHTML = `
           <div class="vault-header">
             <h3>Vault #${vault.id}</h3>
@@ -2270,15 +2247,14 @@
           </div>
           <div class="vault-details">
             <p><strong>Product Name:</strong> ${vault.productName}</p>
-            <p><strong>Available Supply:</strong> ${availableSupply.toLocaleString()}</p>
             <p><strong>Product Token:</strong> <a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></p>
             <p><strong>Payment Token:</strong> ${vault.isNativePayment ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
-            <p><strong>Price per Unit:</strong> ${parseFloat(pricePerUnit).toLocaleString()} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
-            <p><strong>Total Product:</strong> ${parseInt(vault.totalProduct).toLocaleString()}</p>
-            <p><strong>Unshared Product:</strong> ${parseInt(vault.unsharedProduct).toLocaleString()}</p>
-            <p><strong>Total Shares:</strong> ${parseInt(vault.totalShares).toLocaleString()}</p>
-            <p><strong>Total Profit:</strong> ${parseFloat(totalProfit).toLocaleString()}</p>
-            <p><strong>Unshared Profit:</strong> ${parseFloat(unsharedProfit).toLocaleString()}</p>
+            <p><strong>Price:</strong> ${web3.utils.fromWei(vault.price)} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
+            <p><strong>Total Product:</strong> ${vault.totalProduct}</p>
+            <p><strong>Total Shares:</strong> ${vault.totalShares}</p>
+            <p><strong>Total Profit:</strong> ${web3.utils.fromWei(vault.totalProfit)}</p>
+            <p><strong>Unshared Profit:</strong> ${web3.utils.fromWei(vault.unsharedProfit)}</p>
+            <p><strong>Unshared Product:</strong> ${vault.unsharedProduct}</p>
           </div>
           <div class="vault-actions">
             <button class="btn btn-primary btn-sm" onclick="showUpdatePriceModal(${vault.id})">
@@ -2302,9 +2278,6 @@
             <button class="btn btn-danger btn-sm" onclick="withdrawUnsharedProduct(${vault.id})">
               <i class="fas fa-box-open"></i> Withdraw Unshared Product
             </button>
-            <button class="btn btn-success btn-sm" onclick="showBuyProductModal(${vault.id})" ${availableSupply === 0 ? 'disabled' : ''}>
-              <i class="fas fa-shopping-cart"></i> Buy Product
-            </button>
           </div>
         `;
 
@@ -2312,58 +2285,304 @@
       });
     }
 
-    function showBuyProductModal(vaultId) {
-      const form = document.getElementById('buy-product-form');
+    // Function to show Initialize Vault Modal
+    document.getElementById('initialize-vault-btn').addEventListener('click', () => {
+      const form = document.getElementById('initialize-vault-form');
       form.reset();
-      form.elements['vaultId'].value = vaultId;
-      const vault = vaults.find(v => v.id === vaultId);
-      const pricePerUnit = web3.utils.fromWei(vault.price, 'ether');
-      document.getElementById('buy-product-price').textContent = `Price per Unit: ${parseFloat(pricePerUnit).toLocaleString()} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}`;
-      showModal('buy-product-modal');
-    }
+      showModal('initialize-vault-modal');
+    });
 
-    document.getElementById('buy-product-form').addEventListener('submit', async (e) => {
+    // Event listener for Initialize Vault form
+    document.getElementById('initialize-vault-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      const vaultId = formData.get('vaultId');
-      const amount = formData.get('amount');
-      const vault = vaults.find(v => v.id === parseInt(vaultId));
-
-      if (!vault) {
-        showNotification('error', 'Error', 'Vault not found');
-        return;
-      }
-
-      const availableSupply = parseInt(vault.totalProduct) + parseInt(vault.unsharedProduct);
-      if (amount > availableSupply) {
-        showNotification('error', 'Error', 'Amount exceeds available supply');
-        return;
-      }
-
-      const cost = web3.utils.toBN(vault.price).mul(web3.utils.toBN(amount));
+      const productToken = formData.get('productToken');
+      const paymentToken = formData.get('paymentToken');
+      const initialPrice = formData.get('initialPrice');
+      const productName = formData.get('productName');
+      const shareName = formData.get('shareName');
+      const shareSymbol = formData.get('shareSymbol');
+      const isNativePayment = formData.get('isNativePayment') === 'true';
 
       try {
-        if (vault.isNativePayment) {
-          await contract.methods.buyProduct(vaultId, amount).send({ from: currentAccount, value: cost.toString() });
-        } else {
-          const paymentTokenAbi = [{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
-          const paymentToken = new web3.eth.Contract(paymentTokenAbi, vault.paymentToken);
-          const allowance = await paymentToken.methods.allowance(currentAccount, contract.options.address).call();
-          if (web3.utils.toBN(allowance).lt(cost)) {
-            await paymentToken.methods.approve(contract.options.address, cost.toString()).send({ from: currentAccount });
-          }
-          await contract.methods.buyProduct(vaultId, amount).send({ from: currentAccount });
-        }
-        closeModal('buy-product-modal');
-        showNotification('success', 'Success', 'Product purchased successfully');
+        await contract.methods.initializeVault(
+          productToken,
+          paymentToken,
+          initialPrice,
+          productName,
+          shareName,
+          shareSymbol,
+          isNativePayment
+        ).send({ from: currentAccount });
+        closeModal('initialize-vault-modal');
+        showNotification('success', 'Success', 'Vault initialized successfully');
         await loadDashboardData();
       } catch (error) {
         showNotification('error', 'Error', formatError(error));
       }
     });
 
-    // ... [Rest of your existing JavaScript code remains unchanged]
+    // Function to show Update Price Modal
+    function showUpdatePriceModal(vaultId) {
+      const form = document.getElementById('update-price-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+      showModal('update-price-modal');
+    }
 
+    // Event listener for Update Price form
+    document.getElementById('update-price-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const newPrice = formData.get('newPrice');
+      try {
+        await contract.methods.updatePrice(vaultId, newPrice).send({ from: currentAccount });
+        closeModal('update-price-modal');
+        showNotification('success', 'Success', 'Price updated successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Function to show Update Product Name Modal
+    function showUpdateProductNameModal(vaultId) {
+      const form = document.getElementById('update-product-name-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+      showModal('update-product-name-modal');
+    }
+
+    // Event listener for Update Product Name form
+    document.getElementById('update-product-name-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const newProductName = formData.get('newProductName');
+      try {
+        await contract.methods.updateProductName(vaultId, newProductName).send({ from: currentAccount });
+        closeModal('update-product-name-modal');
+        showNotification('success', 'Success', 'Product name updated successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Function to show Deposit Product Modal
+    function showDepositProductModal(vaultId) {
+      const form = document.getElementById('deposit-product-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+      showModal('deposit-product-modal');
+    }
+
+    // Event listener for Deposit Product form
+    document.getElementById('deposit-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const amount = formData.get('amount');
+      try {
+        await contract.methods.depositProduct(vaultId, amount).send({ from: currentAccount });
+        closeModal('deposit-product-modal');
+        showNotification('success', 'Success', 'Product deposited successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Function to recalibrate vault
+    async function recalibrateVault(vaultId) {
+      try {
+        const vault = vaults.find(v => v.id === vaultId);
+        const tokenAddress = vault.productToken;
+        await contract.methods.recalibrateVault(vaultId, tokenAddress).send({ from: currentAccount });
+        showNotification('success', 'Success', `Vault #${vaultId} recalibrated successfully`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    // Function to withdraw unshared profit
+    async function withdrawUnsharedProfit(vaultId) {
+      try {
+        if (currentAccount.toLowerCase() !== beneficiaryAddress.toLowerCase()) {
+          showNotification('error', 'Error', 'Only the beneficiary can withdraw unshared profit');
+          return;
+        }
+        await contract.methods.withdrawUnsharedProfit(vaultId).send({ from: currentAccount });
+        showNotification('success', 'Success', `Unshared profit withdrawn from Vault #${vaultId}`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    // Function to withdraw unshared product
+    async function withdrawUnsharedProduct(vaultId) {
+      try {
+        await contract.methods.withdrawUnsharedProduct(vaultId).send({ from: currentAccount });
+        showNotification('success', 'Success', `Unshared product withdrawn from Vault #${vaultId}`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    // Function to toggle vault state (pause/unpause)
+    async function toggleVaultState(vaultId) {
+      try {
+        const vault = vaults.find(v => v.id === vaultId);
+        if (vault.isPaused) {
+          await contract.methods.unpauseVault(vaultId).send({ from: currentAccount });
+          showNotification('success', 'Success', `Vault #${vaultId} unpaused`);
+        } else {
+          await contract.methods.pauseVault(vaultId).send({ from: currentAccount });
+          showNotification('success', 'Success', `Vault #${vaultId} paused`);
+        }
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
+
+    // Function to toggle contract pause state
+    document.getElementById('toggle-contract-pause-btn').addEventListener('click', async () => {
+      try {
+        const isPaused = await contract.methods.paused().call();
+        if (isPaused) {
+          await contract.methods.unpause().send({ from: currentAccount });
+          showNotification('success', 'Success', 'Contract unpaused');
+        } else {
+          await contract.methods.pause().send({ from: currentAccount });
+          showNotification('success', 'Success', 'Contract paused');
+        }
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Admin Function Modals
+    // Add Manager
+    document.getElementById('add-manager-btn').addEventListener('click', () => {
+      const form = document.getElementById('add-manager-form');
+      form.reset();
+      showModal('add-manager-modal');
+    });
+
+    document.getElementById('add-manager-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const managerAddress = e.target.elements['managerAddress'].value;
+      try {
+        await contract.methods.addManager(managerAddress).send({ from: currentAccount });
+        closeModal('add-manager-modal');
+        showNotification('success', 'Success', 'Manager added successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Remove Manager
+    document.getElementById('remove-manager-btn').addEventListener('click', () => {
+      const form = document.getElementById('remove-manager-form');
+      form.reset();
+      showModal('remove-manager-modal');
+    });
+
+    document.getElementById('remove-manager-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const managerAddress = e.target.elements['managerAddress'].value;
+      try {
+        await contract.methods.removeManager(managerAddress).send({ from: currentAccount });
+        closeModal('remove-manager-modal');
+        showNotification('success', 'Success', 'Manager removed successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Add Depositor
+    document.getElementById('add-depositor-btn').addEventListener('click', () => {
+      const form = document.getElementById('add-depositor-form');
+      form.reset();
+      showModal('add-depositor-modal');
+    });
+
+    document.getElementById('add-depositor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const depositorAddress = e.target.elements['depositorAddress'].value;
+      try {
+        await contract.methods.addDepositor(depositorAddress).send({ from: currentAccount });
+        closeModal('add-depositor-modal');
+        showNotification('success', 'Success', 'Depositor added successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Remove Depositor
+    document.getElementById('remove-depositor-btn').addEventListener('click', () => {
+      const form = document.getElementById('remove-depositor-form');
+      form.reset();
+      showModal('remove-depositor-modal');
+    });
+
+    document.getElementById('remove-depositor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const depositorAddress = e.target.elements['depositorAddress'].value;
+      try {
+        await contract.methods.removeDepositor(depositorAddress).send({ from: currentAccount });
+        closeModal('remove-depositor-modal');
+        showNotification('success', 'Success', 'Depositor removed successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Blacklist Address
+    document.getElementById('blacklist-address-btn').addEventListener('click', () => {
+      const form = document.getElementById('blacklist-address-form');
+      form.reset();
+      showModal('blacklist-address-modal');
+    });
+
+    document.getElementById('blacklist-address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const blacklistAddress = e.target.elements['blacklistAddress'].value;
+      try {
+        await contract.methods.blacklistAddress(blacklistAddress).send({ from: currentAccount });
+        closeModal('blacklist-address-modal');
+        showNotification('success', 'Success', 'Address blacklisted successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Unblacklist Address
+    document.getElementById('unblacklist-address-btn').addEventListener('click', () => {
+      const form = document.getElementById('unblacklist-address-form');
+      form.reset();
+      showModal('unblacklist-address-modal');
+    });
+
+    document.getElementById('unblacklist-address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const unblacklistAddress = e.target.elements['unblacklistAddress'].value;
+      try {
+        await contract.methods.unblacklistAddress(unblacklistAddress).send({ from: currentAccount });
+        closeModal('unblacklist-address-modal');
+        showNotification('success', 'Success', 'Address unblacklisted successfully');
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
+    // Helper functions
     function showModal(modalId) {
       const modal = document.getElementById(modalId);
       modal.classList.add('show');
@@ -2407,7 +2626,7 @@
 
       const chartData = vaults.map(v => ({
         id: v.id,
-        totalProfit: parseFloat(web3.utils.fromWei(v.totalProfit, 'ether')),
+        totalProfit: parseFloat(web3.utils.fromWei(v.totalProfit)),
         totalProduct: parseInt(v.totalProduct),
         totalShares: parseInt(v.totalShares)
       }));
@@ -2447,6 +2666,7 @@
       });
     }
 
+    // Setup UI elements
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof window.ethereum !== 'undefined') {
         web3 = new Web3(window.ethereum);
