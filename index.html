@@ -472,13 +472,6 @@
           <label>Share Token Symbol</label>
           <input type="text" name="shareSymbol" required>
         </div>
-        <div class="form-group">
-          <label>Is Native Payment?</label>
-          <select name="isNativePayment" required>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </div>
         <button type="submit" class="btn btn-primary">Initialize Vault</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('initialize-vault-modal')">Cancel</button>
       </form>
@@ -1958,6 +1951,7 @@
 		"type": "receive"
 	}
 ];
+    // (For brevity, insert the entire ABI provided in your smart contract)
 
     // Replace with your contract address for each network
     const NETWORKS = {
@@ -1978,7 +1972,7 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
+        contractAddress: '0x568e5E65D5FEDAE8B7c141808714f8F6449e1aFD', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
         chainParams: {
@@ -1992,7 +1986,7 @@
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '0x52e0b31b75C6750671Cb64400C52B7aE43b4b39c', // Replace with your contract address
+        contractAddress: '0x568e5E65D5FEDAE8B7c141808714f8F6449e1aFD', // Replace with your contract address
         symbol: 'POL',
         explorer: 'https://polygonscan.com',
         chainParams: {
@@ -2167,7 +2161,6 @@
               productName: basicInfo.productName,
               isInitialized: basicInfo.isInitialized,
               isPaused: basicInfo.isPaused,
-              isNativePayment: basicInfo.isNativePayment,
               totalProduct: financialInfo.totalProduct,
               totalProfit: financialInfo.totalProfit,
               unsharedProfit: financialInfo.unsharedProfit,
@@ -2219,8 +2212,8 @@
           <div class="vault-details">
             <p><strong>Product Name:</strong> ${vault.productName}</p>
             <p><strong>Product Token:</strong> <a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></p>
-            <p><strong>Payment Token:</strong> ${vault.isNativePayment ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
-            <p><strong>Price:</strong> ${web3.utils.fromWei(vault.price)} ${vault.isNativePayment ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
+            <p><strong>Payment Token:</strong> ${vault.paymentToken === '0x0000000000000000000000000000000000000000' ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
+            <p><strong>Price:</strong> ${web3.utils.fromWei(vault.price)} ${vault.paymentToken === '0x0000000000000000000000000000000000000000' ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
             <p><strong>Total Product:</strong> ${vault.totalProduct}</p>
             <p><strong>Total Shares:</strong> ${vault.totalShares}</p>
             <p><strong>Total Profit:</strong> ${web3.utils.fromWei(vault.totalProfit)}</p>
@@ -2273,7 +2266,6 @@
       const productName = formData.get('productName');
       const shareName = formData.get('shareName');
       const shareSymbol = formData.get('shareSymbol');
-      const isNativePayment = formData.get('isNativePayment') === 'true';
 
       try {
         await contract.methods.initializeVault(
@@ -2282,8 +2274,7 @@
           initialPrice,
           productName,
           shareName,
-          shareSymbol,
-          isNativePayment
+          shareSymbol
         ).send({ from: currentAccount });
         closeModal('initialize-vault-modal');
         showNotification('success', 'Success', 'Vault initialized successfully');
@@ -2356,6 +2347,17 @@
       const vaultId = formData.get('vaultId');
       const amount = formData.get('amount');
       try {
+        const vault = vaults.find(v => v.id == vaultId);
+        const productTokenAddress = vault.productToken;
+
+        const productTokenContract = new web3.eth.Contract([
+          // Minimal ERC20 ABI for approval
+          { "constant": false, "inputs": [ { "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" } ], "name": "approve", "outputs": [ { "name": "", "type": "bool" } ], "type": "function" },
+        ], productTokenAddress);
+
+        // Approve the contract to transfer tokens on behalf of the depositor
+        await productTokenContract.methods.approve(contract.options.address, amount).send({ from: currentAccount });
+
         await contract.methods.depositProduct(vaultId, amount).send({ from: currentAccount });
         closeModal('deposit-product-modal');
         showNotification('success', 'Success', 'Product deposited successfully');
@@ -2675,6 +2677,9 @@
           link.classList.add('active');
         });
       });
+
+      // Refresh Vaults Button
+      document.getElementById('refresh-vaults').addEventListener('click', loadDashboardData);
     });
 
     // Close modal when clicking outside of it
