@@ -340,113 +340,81 @@
   </style>
 </head>
 <body>
-  <div class="dashboard">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="logo-container">
-        <img src="https://ipfs.io/ipfs/QmQX4HvtqdYVuJHm17JTyGkK1ttFitg4oAhPzXdy6psm1T" alt="Company Logo" class="logo-image">
-      </div>
-      <h2>CIFI VM Admin</h2>
-      <div class="network-selector">
-        <select id="network-select">
-          <option value="50">XDC Mainnet</option>
-          <option value="43114">Avalanche C-Chain</option>
-          <option value="137">Polygon Mainnet</option>
-        </select>
-      </div>
-      <div class="address-display" id="connected-address">
-        Not Connected
-      </div>
-      <button class="btn btn-primary" id="connect-wallet-btn">Connect Wallet</button>
-      <nav>
-        <a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#" class="nav-link" data-section="admin"><i class="fas fa-user-shield"></i> Admin Functions</a>
-      </nav>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-left">
+      <a href="#" class="nav-link active" data-section="dashboard">Dashboard</a>
+      <a href="#" class="nav-link" data-section="admin">Admin</a>
     </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Network Info -->
-      <div class="network-info">
-        <div class="current-network" id="current-network">
-          Network: Not Connected
-        </div>
-        <div class="network-status" id="network-status"></div>
-      </div>
-
-      <!-- Dashboard Section -->
-      <div id="dashboard-section">
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3>Total Vaults</h3>
-            <p id="total-vaults">Loading...</p>
-          </div>
-          <div class="stat-card">
-            <h3>Total Deposits</h3>
-            <p id="total-deposits">Loading...</p>
-          </div>
-          <div class="stat-card">
-            <h3>Contract Balance</h3>
-            <p id="contract-balance">Loading...</p>
-          </div>
-          <div class="stat-card">
-            <h3>Contract Status</h3>
-            <p id="contract-status">Loading...</p>
-          </div>
-        </div>
-
-        <!-- Vaults Section -->
-        <div class="vaults-section">
-          <div class="section-header">
-            <h2>Vaults</h2>
-            <div class="header-actions">
-              <button class="btn btn-primary" id="refresh-vaults">
-                <i class="fas fa-sync"></i> Refresh
-              </button>
-              <button class="btn btn-primary" id="initialize-vault-btn">
-                <i class="fas fa-plus"></i> Initialize Vault
-              </button>
-            </div>
-          </div>
-
-          <div class="vaults-grid" id="vaults-list">
-            <!-- Vault cards will be populated here -->
-          </div>
-        </div>
-
-        <!-- Analytics Section -->
-        <div class="analytics-section">
-          <h2>Analytics Dashboard</h2>
-          <div class="chart-container">
-            <canvas id="vaults-chart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Admin Functions Section -->
-      <div id="admin-section" style="display: none;">
-        <div class="admin-section">
-          <h2>Admin Functions</h2>
-          <div class="admin-controls">
-            <button class="btn btn-primary" id="add-manager-btn"><i class="fas fa-user-plus"></i> Add Manager</button>
-            <button class="btn btn-primary" id="remove-manager-btn"><i class="fas fa-user-minus"></i> Remove Manager</button>
-            <button class="btn btn-primary" id="add-depositor-btn"><i class="fas fa-user-plus"></i> Add Depositor</button>
-            <button class="btn btn-primary" id="remove-depositor-btn"><i class="fas fa-user-minus"></i> Remove Depositor</button>
-            <button class="btn btn-primary" id="blacklist-address-btn"><i class="fas fa-ban"></i> Blacklist Address</button>
-            <button class="btn btn-primary" id="unblacklist-address-btn"><i class="fas fa-check-circle"></i> Unblacklist Address</button>
-            <button class="btn btn-danger" id="toggle-contract-pause-btn">Loading Contract State...</button>
-          </div>
-        </div>
-      </div>
+    <div class="nav-right">
+      <span id="current-network">Network: Not Connected</span>
+      <select id="network-select">
+        <option value="">Select Network</option>
+        <option value="50">XDC Mainnet</option>
+        <option value="43114">Avalanche C-Chain</option>
+        <option value="137">Polygon Mainnet</option>
+      </select>
+      <button id="connect-wallet-btn" class="btn btn-primary">Connect Wallet</button>
+      <span id="connected-address">Not Connected</span>
     </div>
-  </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Dashboard Section -->
+    <section id="dashboard-section">
+      <h1>Vending Vault Manager Dashboard</h1>
+      <div class="stats">
+        <div class="stat">
+          <h3>Total Vaults</h3>
+          <p id="total-vaults">0</p>
+        </div>
+        <div class="stat">
+          <h3>Total Deposits</h3>
+          <p id="total-deposits">0</p>
+        </div>
+        <div class="stat">
+          <h3>Contract Balance</h3>
+          <p id="contract-balance">0</p>
+        </div>
+        <div class="stat">
+          <h3>Contract Status</h3>
+          <p id="contract-status">Not Connected</p>
+          <button id="toggle-contract-pause-btn" class="btn btn-warning">Pause Contract</button>
+        </div>
+      </div>
+      <canvas id="vaults-chart"></canvas>
+      <div class="vaults">
+        <div class="vaults-header">
+          <h2>Vaults</h2>
+          <button id="refresh-vaults" class="btn btn-secondary">Refresh Vaults</button>
+        </div>
+        <div id="vaults-list">
+          <!-- Vault cards will be dynamically added here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin Section -->
+    <section id="admin-section" style="display: none;">
+      <h1>Admin Panel</h1>
+      <div class="admin-actions">
+        <button id="initialize-vault-btn" class="btn btn-primary">Initialize Vault</button>
+        <button id="add-manager-btn" class="btn btn-primary">Add Manager</button>
+        <button id="remove-manager-btn" class="btn btn-secondary">Remove Manager</button>
+        <button id="add-depositor-btn" class="btn btn-primary">Add Depositor</button>
+        <button id="remove-depositor-btn" class="btn btn-secondary">Remove Depositor</button>
+        <button id="blacklist-address-btn" class="btn btn-danger">Blacklist Address</button>
+        <button id="unblacklist-address-btn" class="btn btn-success">Unblacklist Address</button>
+      </div>
+    </section>
+  </main>
 
   <!-- Modals -->
   <!-- Initialize Vault Modal -->
   <div id="initialize-vault-modal" class="modal">
     <div class="modal-content">
-      <h2>Initialize New Vault</h2>
+      <h2>Initialize Vault</h2>
       <form id="initialize-vault-form">
         <div class="form-group">
           <label>Product Token Address</label>
@@ -457,12 +425,12 @@
           <input type="checkbox" name="isWcifiToken">
         </div>
         <div class="form-group">
-          <label>Payment Token Address</label>
-          <input type="text" name="paymentToken" required placeholder="Use 0x0 for native token">
+          <label>Payment Tokens (comma-separated addresses, use '0x000...' for native token)</label>
+          <input type="text" name="paymentTokens" required>
         </div>
         <div class="form-group">
-          <label>Initial Price (in wei)</label>
-          <input type="number" name="initialPrice" required>
+          <label>Initial Prices (comma-separated values in Wei, corresponding to payment tokens)</label>
+          <input type="text" name="initialPrices" required>
         </div>
         <div class="form-group">
           <label>Product Name</label>
@@ -476,7 +444,7 @@
           <label>Share Token Symbol</label>
           <input type="text" name="shareSymbol" required>
         </div>
-        <button type="submit" class="btn btn-primary">Initialize Vault</button>
+        <button type="submit" class="btn btn-primary">Initialize</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('initialize-vault-modal')">Cancel</button>
       </form>
     </div>
@@ -485,14 +453,18 @@
   <!-- Update Price Modal -->
   <div id="update-price-modal" class="modal">
     <div class="modal-content">
-      <h2>Update Vault Price</h2>
+      <h2>Update Price</h2>
       <form id="update-price-form">
         <input type="hidden" name="vaultId">
         <div class="form-group">
-          <label>New Price (in wei)</label>
+          <label>Payment Token Address (use '0x000...' for native token)</label>
+          <input type="text" name="paymentToken" required>
+        </div>
+        <div class="form-group">
+          <label>New Price (in Wei)</label>
           <input type="number" name="newPrice" required>
         </div>
-        <button type="submit" class="btn btn-primary">Update Price</button>
+        <button type="submit" class="btn btn-primary">Update</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('update-price-modal')">Cancel</button>
       </form>
     </div>
@@ -508,7 +480,7 @@
           <label>New Product Name</label>
           <input type="text" name="newProductName" required>
         </div>
-        <button type="submit" class="btn btn-primary">Update Product Name</button>
+        <button type="submit" class="btn btn-primary">Update</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('update-product-name-modal')">Cancel</button>
       </form>
     </div>
@@ -523,9 +495,26 @@
         <div class="form-group">
           <label>Amount</label>
           <input type="number" name="amount" required>
+          <small id="deposit-limits"></small>
         </div>
         <button type="submit" class="btn btn-primary">Deposit</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('deposit-product-modal')">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Withdraw Product Modal -->
+  <div id="withdraw-product-modal" class="modal">
+    <div class="modal-content">
+      <h2>Withdraw Product</h2>
+      <form id="withdraw-product-form">
+        <input type="hidden" name="vaultId">
+        <div class="form-group">
+          <label>Share Amount</label>
+          <input type="number" name="shareAmount" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Withdraw</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('withdraw-product-modal')">Cancel</button>
       </form>
     </div>
   </div>
@@ -539,7 +528,7 @@
           <label>Manager Address</label>
           <input type="text" name="managerAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Add Manager</button>
+        <button type="submit" class="btn btn-primary">Add</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('add-manager-modal')">Cancel</button>
       </form>
     </div>
@@ -554,7 +543,7 @@
           <label>Manager Address</label>
           <input type="text" name="managerAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Remove Manager</button>
+        <button type="submit" class="btn btn-primary">Remove</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('remove-manager-modal')">Cancel</button>
       </form>
     </div>
@@ -569,7 +558,7 @@
           <label>Depositor Address</label>
           <input type="text" name="depositorAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Add Depositor</button>
+        <button type="submit" class="btn btn-primary">Add</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('add-depositor-modal')">Cancel</button>
       </form>
     </div>
@@ -584,7 +573,7 @@
           <label>Depositor Address</label>
           <input type="text" name="depositorAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Remove Depositor</button>
+        <button type="submit" class="btn btn-primary">Remove</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('remove-depositor-modal')">Cancel</button>
       </form>
     </div>
@@ -596,10 +585,10 @@
       <h2>Blacklist Address</h2>
       <form id="blacklist-address-form">
         <div class="form-group">
-          <label>Address to Blacklist</label>
+          <label>Address</label>
           <input type="text" name="blacklistAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Blacklist Address</button>
+        <button type="submit" class="btn btn-danger">Blacklist</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('blacklist-address-modal')">Cancel</button>
       </form>
     </div>
@@ -611,10 +600,10 @@
       <h2>Unblacklist Address</h2>
       <form id="unblacklist-address-form">
         <div class="form-group">
-          <label>Address to Unblacklist</label>
+          <label>Address</label>
           <input type="text" name="unblacklistAddress" required>
         </div>
-        <button type="submit" class="btn btn-primary">Unblacklist Address</button>
+        <button type="submit" class="btn btn-success">Unblacklist</button>
         <button type="button" class="btn btn-secondary" onclick="closeModal('unblacklist-address-modal')">Cancel</button>
       </form>
     </div>
@@ -669,14 +658,19 @@
 				"type": "bool"
 			},
 			{
-				"internalType": "address[]",
-				"name": "paymentTokens",
-				"type": "address[]"
+				"internalType": "enum VendingVaultManager.PaymentType",
+				"name": "paymentType",
+				"type": "uint8"
 			},
 			{
-				"internalType": "uint256[]",
-				"name": "initialPrices",
-				"type": "uint256[]"
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
 			},
 			{
 				"internalType": "string",
@@ -804,11 +798,6 @@
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "buyProduct",
@@ -923,12 +912,6 @@
 			},
 			{
 				"indexed": false,
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
 				"name": "newPrice",
 				"type": "uint256"
@@ -1025,12 +1008,6 @@
 				"internalType": "uint256",
 				"name": "cost",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "ProductSold",
@@ -1087,12 +1064,6 @@
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "ProfitWithdrawn",
@@ -1247,12 +1218,6 @@
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "UnsharedProfitWithdrawn",
@@ -1281,15 +1246,21 @@
 			},
 			{
 				"indexed": false,
-				"internalType": "address[]",
-				"name": "paymentTokens",
-				"type": "address[]"
+				"internalType": "enum VendingVaultManager.PaymentType",
+				"name": "paymentType",
+				"type": "uint8"
 			},
 			{
 				"indexed": false,
-				"internalType": "uint256[]",
-				"name": "prices",
-				"type": "uint256[]"
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
 			},
 			{
 				"indexed": false,
@@ -1359,11 +1330,6 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
-			},
-			{
 				"internalType": "uint256",
 				"name": "newPrice",
 				"type": "uint256"
@@ -1416,11 +1382,6 @@
 				"internalType": "uint256",
 				"name": "vaultId",
 				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "withdrawProfit",
@@ -1447,11 +1408,6 @@
 				"internalType": "uint256",
 				"name": "vaultId",
 				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "paymentToken",
-				"type": "address"
 			}
 		],
 		"name": "withdrawUnsharedProfit",
@@ -1620,11 +1576,6 @@
 				"internalType": "uint256",
 				"name": "paymentBalance",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nativeBalance",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -1651,9 +1602,19 @@
 				"type": "bool"
 			},
 			{
-				"internalType": "address[]",
-				"name": "paymentTokens",
-				"type": "address[]"
+				"internalType": "enum VendingVaultManager.PaymentType",
+				"name": "paymentType",
+				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "paymentToken",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "price",
+				"type": "uint256"
 			},
 			{
 				"internalType": "string",
@@ -1708,30 +1669,6 @@
 				"internalType": "uint256",
 				"name": "unsharedProfit",
 				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "vaultId",
-				"type": "uint256"
-			}
-		],
-		"name": "getVaultPrices",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "paymentTokens",
-				"type": "address[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "prices",
-				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -1904,7 +1841,7 @@
       50: {
         name: 'XDC Mainnet',
         rpcUrl: 'https://rpc.xinfin.network',
-        contractAddress: '0x11C9f91958a6b0bE5795143d55aDD7Cd8aF9cbB1', // Replace with your contract address
+        contractAddress: '0xECC061e5e3C5f69243B21dA67dF17eC926f22d3e', // Replace with your contract address
         symbol: 'XDC',
         explorer: 'https://explorer.xinfin.network',
         chainParams: {
@@ -1918,7 +1855,7 @@
       43114: {
         name: 'Avalanche C-Chain',
         rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-        contractAddress: '0x3acea70fFCb91b4ffDF433AD0e35fC51a08e1cEc', // Replace with your contract address
+        contractAddress: '0xECC061e5e3C5f69243B21dA67dF17eC926f22d3e', // Replace with your contract address
         symbol: 'AVAX',
         explorer: 'https://snowtrace.io',
         chainParams: {
@@ -1932,7 +1869,7 @@
       137: {
         name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
-        contractAddress: '0xa6eeb5C81Efc408FCE8C7D022fbDe92c673d7dAD', // Replace with your contract address
+        contractAddress: '0xECC061e5e3C5f69243B21dA67dF17eC926f22d3e', // Replace with your contract address
         symbol: 'POL',
         explorer: 'https://polygonscan.com',
         chainParams: {
@@ -1951,6 +1888,8 @@
     let currentChainId;
     let vaults = [];
     let beneficiaryAddress;
+    let isDepositor = false;
+    let isManager = false;
 
     // Initialize Web3 and connect to the wallet
     async function connectWallet() {
@@ -2065,7 +2004,10 @@
         'Paused',
         'Unpaused',
         'ProductNameUpdated',
-        'UnsharedProductWithdrawn'
+        'PriceUpdated',
+        'UnsharedProductWithdrawn',
+        'Recalibrated',
+        'ProductWithdrawal'
       ];
 
       events.forEach(eventName => {
@@ -2090,18 +2032,40 @@
 
         vaults = [];
 
+        // Fetch MIN_DEPOSIT and MAX_DEPOSIT
+        const [minDeposit, maxDeposit] = await Promise.all([
+          contract.methods.MIN_DEPOSIT().call(),
+          contract.methods.MAX_DEPOSIT().call()
+        ]);
+
+        // Fetch user roles
+        [isDepositor, isManager] = await Promise.all([
+          contract.methods.isDepositor(currentAccount).call(),
+          contract.methods.isManager(currentAccount).call()
+        ]);
+
+        // Update UI based on roles
+        updateUIBasedOnRoles();
+
         for (let vaultId = 0; vaultId < vaultCount; vaultId++) {
           const [basicInfo, financialInfo] = await Promise.all([
             contract.methods.getVaultBasicInfo(vaultId).call(),
             contract.methods.getVaultFinancialInfo(vaultId).call()
           ]);
 
+          const [paymentTokens, prices] = await contract.methods.getVaultPrices(vaultId).call();
+
+          const priceList = paymentTokens.map((token, index) => ({
+            token,
+            price: prices[index]
+          }));
+
           vaults.push({
             id: vaultId,
             productToken: basicInfo.productToken,
             isWcifiToken: basicInfo.isWcifiToken,
-            paymentToken: basicInfo.paymentToken,
-            price: basicInfo.price,
+            paymentTokens: paymentTokens,
+            priceList: priceList,
             productName: basicInfo.productName,
             shareToken: basicInfo.shareToken,
             isPaused: basicInfo.isPaused,
@@ -2109,7 +2073,9 @@
             totalProfit: financialInfo.totalProfit,
             totalShares: financialInfo.totalShares,
             unsharedProduct: financialInfo.unsharedProduct,
-            unsharedProfit: financialInfo.unsharedProfit
+            unsharedProfit: financialInfo.unsharedProfit,
+            minDeposit: minDeposit,
+            maxDeposit: maxDeposit
           });
 
           totalDeposits += parseInt(financialInfo.totalProduct);
@@ -2136,6 +2102,22 @@
       }
     }
 
+    function updateUIBasedOnRoles() {
+      // Enable or disable deposit buttons based on depositor role
+      const depositButtons = document.querySelectorAll('.deposit-button');
+      depositButtons.forEach(button => {
+        button.disabled = !isDepositor;
+      });
+
+      // Show or hide admin sections based on manager role
+      const adminSection = document.getElementById('admin-section');
+      if (isManager) {
+        adminSection.style.display = 'block';
+      } else {
+        adminSection.style.display = 'none';
+      }
+    }
+
     function renderVaults() {
       const vaultsList = document.getElementById('vaults-list');
       vaultsList.innerHTML = '';
@@ -2143,6 +2125,11 @@
       vaults.forEach(vault => {
         const vaultCard = document.createElement('div');
         vaultCard.className = 'vault-card';
+
+        const paymentTokensHTML = vault.priceList.map(item => {
+          const tokenDisplay = item.token === '0x0000000000000000000000000000000000000000' ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${item.token}" target="_blank">${item.token.substr(0,6)}...${item.token.substr(-4)}</a>`;
+          return `<p><strong>Payment Token:</strong> ${tokenDisplay}, Price: ${web3.utils.fromWei(item.price)} </p>`;
+        }).join('');
 
         vaultCard.innerHTML = `
           <div class="vault-header">
@@ -2154,8 +2141,7 @@
           <div class="vault-details">
             <p><strong>Product Name:</strong> ${vault.productName}</p>
             <p><strong>Product Token:</strong> <a href="${NETWORKS[currentChainId].explorer}/address/${vault.productToken}" target="_blank">${vault.productToken.substr(0,6)}...${vault.productToken.substr(-4)}</a></p>
-            <p><strong>Payment Token:</strong> ${vault.paymentToken === '0x0000000000000000000000000000000000000000' ? 'Native Token' : `<a href="${NETWORKS[currentChainId].explorer}/address/${vault.paymentToken}" target="_blank">${vault.paymentToken.substr(0,6)}...${vault.paymentToken.substr(-4)}</a>`}</p>
-            <p><strong>Price:</strong> ${web3.utils.fromWei(vault.price)} ${vault.paymentToken === '0x0000000000000000000000000000000000000000' ? NETWORKS[currentChainId].symbol : 'ERC20'}</p>
+            ${paymentTokensHTML}
             <p><strong>Total Product:</strong> ${vault.totalProduct}</p>
             <p><strong>Total Shares:</strong> ${vault.totalShares}</p>
             <p><strong>Total Profit:</strong> ${web3.utils.fromWei(vault.totalProfit)}</p>
@@ -2169,9 +2155,17 @@
             <button class="btn btn-secondary btn-sm" onclick="showUpdateProductNameModal(${vault.id})">
               <i class="fas fa-edit"></i> Update Product Name
             </button>
-            <button class="btn btn-primary btn-sm" onclick="showDepositProductModal(${vault.id})">
+            <button class="btn btn-primary btn-sm deposit-button" onclick="showDepositProductModal(${vault.id})" ${!isDepositor ? 'disabled' : ''}>
               <i class="fas fa-box"></i> Deposit Product
             </button>
+            <button class="btn btn-primary btn-sm" onclick="showWithdrawProductModal(${vault.id})" ${!isDepositor ? 'disabled' : ''}>
+              <i class="fas fa-box-open"></i> Withdraw Product
+            </button>
+            ${isManager ? `
+            <button class="btn btn-primary btn-sm" onclick="recalibrateVault(${vault.id})">
+              <i class="fas fa-sync-alt"></i> Recalibrate
+            </button>
+            ` : ''}
             <button class="btn ${vault.isPaused ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleVaultState(${vault.id})">
               ${vault.isPaused ? '<i class="fas fa-play"></i> Unpause' : '<i class="fas fa-pause"></i> Pause'}
             </button>
@@ -2201,18 +2195,26 @@
       const formData = new FormData(e.target);
       const productToken = formData.get('productToken');
       const isWcifiToken = formData.get('isWcifiToken') ? true : false;
-      const paymentToken = formData.get('paymentToken');
-      const initialPrice = formData.get('initialPrice');
+      const paymentTokensInput = formData.get('paymentTokens');
+      const initialPricesInput = formData.get('initialPrices');
       const productName = formData.get('productName');
       const shareName = formData.get('shareName');
       const shareSymbol = formData.get('shareSymbol');
 
       try {
+        const paymentTokens = paymentTokensInput.split(',').map(s => s.trim());
+        const initialPrices = initialPricesInput.split(',').map(s => s.trim());
+
+        if (paymentTokens.length !== initialPrices.length) {
+          showNotification('error', 'Error', 'Payment tokens and prices count mismatch');
+          return;
+        }
+
         await contract.methods.initializeVault(
           productToken,
           isWcifiToken,
-          paymentToken,
-          initialPrice,
+          paymentTokens,
+          initialPrices,
           productName,
           shareName,
           shareSymbol
@@ -2238,9 +2240,10 @@
       e.preventDefault();
       const formData = new FormData(e.target);
       const vaultId = formData.get('vaultId');
+      const paymentToken = formData.get('paymentToken');
       const newPrice = formData.get('newPrice');
       try {
-        await contract.methods.updatePrice(vaultId, newPrice).send({ from: currentAccount });
+        await contract.methods.updatePrice(vaultId, paymentToken, newPrice).send({ from: currentAccount });
         closeModal('update-price-modal');
         showNotification('success', 'Success', 'Price updated successfully');
         await loadDashboardData();
@@ -2278,6 +2281,11 @@
       const form = document.getElementById('deposit-product-form');
       form.reset();
       form.elements['vaultId'].value = vaultId;
+
+      // Display MIN_DEPOSIT and MAX_DEPOSIT in the modal
+      const vault = vaults.find(v => v.id == vaultId);
+      document.getElementById('deposit-limits').textContent = `Min: ${vault.minDeposit}, Max: ${vault.maxDeposit}`;
+
       showModal('deposit-product-modal');
     }
 
@@ -2290,6 +2298,12 @@
       try {
         const vault = vaults.find(v => v.id == vaultId);
         const productTokenAddress = vault.productToken;
+
+        // Check if amount is within MIN_DEPOSIT and MAX_DEPOSIT
+        if (parseInt(amount) < parseInt(vault.minDeposit) || parseInt(amount) > parseInt(vault.maxDeposit)) {
+          showNotification('error', 'Error', `Amount must be between ${vault.minDeposit} and ${vault.maxDeposit}`);
+          return;
+        }
 
         const productTokenContract = new web3.eth.Contract([
           // Minimal ERC20 ABI for approval
@@ -2308,6 +2322,31 @@
       }
     });
 
+    // Function to show Withdraw Product Modal
+    function showWithdrawProductModal(vaultId) {
+      const form = document.getElementById('withdraw-product-form');
+      form.reset();
+      form.elements['vaultId'].value = vaultId;
+
+      showModal('withdraw-product-modal');
+    }
+
+    // Event listener for Withdraw Product form
+    document.getElementById('withdraw-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const vaultId = formData.get('vaultId');
+      const shareAmount = formData.get('shareAmount');
+      try {
+        await contract.methods.withdrawProduct(vaultId, shareAmount).send({ from: currentAccount });
+        closeModal('withdraw-product-modal');
+        showNotification('success', 'Success', 'Product withdrawn successfully');
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    });
+
     // Function to withdraw unshared profit
     async function withdrawUnsharedProfit(vaultId) {
       try {
@@ -2315,7 +2354,15 @@
           showNotification('error', 'Error', 'Only the beneficiary can withdraw unshared profit');
           return;
         }
-        await contract.methods.withdrawUnsharedProfit(vaultId).send({ from: currentAccount });
+
+        // Prompt for payment token
+        const paymentToken = prompt('Enter the payment token address for withdrawal (use 0x000... for native token):');
+        if (!paymentToken) {
+          showNotification('error', 'Error', 'Payment token is required');
+          return;
+        }
+
+        await contract.methods.withdrawUnsharedProfit(vaultId, paymentToken).send({ from: currentAccount });
         showNotification('success', 'Success', `Unshared profit withdrawn from Vault #${vaultId}`);
         await loadDashboardData();
       } catch (error) {
@@ -2616,6 +2663,17 @@
         closeModal(e.target.id);
       }
     });
+
+    // Add Recalibrate Functionality
+    async function recalibrateVault(vaultId) {
+      try {
+        await contract.methods.recalibrate(vaultId).send({ from: currentAccount });
+        showNotification('success', 'Success', `Vault #${vaultId} recalibrated`);
+        await loadDashboardData();
+      } catch (error) {
+        showNotification('error', 'Error', formatError(error));
+      }
+    }
 
   </script>
 </body>
